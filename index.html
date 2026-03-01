@@ -985,10 +985,13 @@ function freshState(studentName) {
 //  STUDENT PICKER  (shown on first load / logout)
 // ══════════════════════════════════════════════════════════════════
 function showStudentPicker() {
-  document.querySelector('.sidebar').style.display = 'none';
-  document.querySelector('.main').style.width = '100%';
+  try {
+    document.querySelector('.sidebar').style.display = 'none';
+    document.querySelector('.main').style.width = '100%';
+  } catch(e) {}
 
   const students = getAllStudents();
+
   const timeAgo = (ts) => {
     if (!ts) return 'Never';
     const mins = Math.round((Date.now() - ts) / 60000);
@@ -998,64 +1001,99 @@ function showStudentPicker() {
     if (hrs < 24) return hrs + 'h ago';
     return Math.round(hrs / 24) + 'd ago';
   };
-  const phaseLabel = { intro:'Ready for diagnostic', assessing:'Mid-assessment', results:'Reviewing results', learning:'In lessons', complete:'Module complete' };
 
-  document.getElementById('content').innerHTML = `
-    <div style="max-width:520px;margin:48px auto;animation:risein 0.4s ease;">
+  const phaseLabel = {
+    intro: 'Ready for diagnostic', assessing: 'Mid-assessment',
+    results: 'Reviewing results', learning: 'In lessons', complete: 'Module complete'
+  };
 
-      <div style="text-align:center;margin-bottom:40px;">
-        <div style="font-size:2.5rem;margin-bottom:12px;">📚</div>
-        <h1 style="font-family:'Fraunces',serif;font-size:2rem;font-weight:900;letter-spacing:-0.02em;margin-bottom:8px;">Who's learning today?</h1>
-        <p style="color:rgba(255,255,255,0.55);font-size:0.88rem;">Progress is saved automatically on this device.</p>
-      </div>
+  const el = document.getElementById('content');
+  if (!el) return;
 
-      ${students.length > 0 ? `
-        <div style="margin-bottom:24px;">
-          <div style="font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:10px;">Returning Students</div>
-          ${students.map(s => {
-            const modColors = ['#ff7c4d','#3ecf8e','#7c6bff'];
-            const barHtml = (s.moduleStates || []).map((ms, i) => {
-              const col = ms === 'complete' ? modColors[i] || '#7c6bff' : ms === 'learning' ? modColors[i] || '#7c6bff' : 'rgba(255,255,255,0.08)';
-              const opacity = ms === 'complete' ? '1' : ms === 'learning' ? '0.5' : '0.3';
-              return '<div style="flex:1;height:4px;border-radius:2px;background:' + col + ';opacity:' + opacity + '"></div>';
-            }).join('');
-            return '<div onclick="loginStudent('' + s.name + '')" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;cursor:pointer;transition:all 0.15s;margin-bottom:8px;display:flex;align-items:center;gap:14px;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">' +
-              '<div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1rem;flex-shrink:0;">' + s.name[0].toUpperCase() + '</div>' +
-              '<div style="flex:1;min-width:0;">' +
-                '<div style="font-weight:700;font-size:0.95rem;margin-bottom:4px;">' + s.name + '</div>' +
-                '<div style="display:flex;gap:4px;margin-bottom:5px;">' + barHtml + '</div>' +
-                '<div style="font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:rgba(255,255,255,0.5);">' + s.completedCount + '/' + MODULES.length + ' modules · ' + (phaseLabel[s.phase] || '') + ' · Last seen ' + timeAgo(s.savedAt) + '</div>' +
-              '</div>' +
-              '<div style="font-size:1.2rem;color:rgba(255,255,255,0.4)">›</div>' +
-            '</div>';
-          }).join('')}
-        </div>
-      ` : ''}
+  // Build HTML safely using DOM manipulation to avoid quote issues
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'max-width:520px;margin:48px auto;';
 
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:12px;">New Student</div>
-        <input id="name-input" type="text" placeholder="Enter your first name…" maxlength="20"
-          style="width:100%;padding:12px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:#ffffff;font-family:'Syne',sans-serif;font-size:0.95rem;outline:none;margin-bottom:10px;"
-          onkeydown="if(event.key==='Enter') startNewStudent()"
-          onfocus="this.style.borderColor='var(--accent)'"
-          onblur="this.style.borderColor='var(--border)'" />
-        <button onclick="startNewStudent()" style="width:100%;padding:13px;background:var(--accent);border:none;border-radius:8px;color:white;font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.filter='brightness(1.1)'" onmouseout="this.style.filter=''">
-          Start Learning →
-        </button>
-      </div>
-
-      ${students.length > 0 ? `
-        <div style="margin-top:16px;text-align:center;">
-          <button onclick="showManageStudents()" style="background:none;border:none;color:rgba(255,255,255,0.45);font-family:'JetBrains Mono',monospace;font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;text-decoration:underline;">
-            Manage Students
-          </button>
-        </div>
-      ` : ''}
+  // Hero
+  wrap.innerHTML = `
+    <div style="text-align:center;margin-bottom:40px;">
+      <div style="font-size:2.5rem;margin-bottom:12px;">📚</div>
+      <h1 style="font-family:'Fraunces',serif;font-size:2rem;font-weight:900;letter-spacing:-0.02em;margin-bottom:8px;color:#ffffff;">Who's learning today?</h1>
+      <p style="color:rgba(255,255,255,0.55);font-size:0.88rem;">Progress is saved automatically on this device.</p>
     </div>
   `;
-  document.getElementById('phase-tag').textContent = 'Welcome';
-  document.getElementById('phase-tag').className = 'phase-tag phase-assess';
-  document.getElementById('topbar-title').textContent = 'Engaging Math · Grade 5';
+
+  // Returning students
+  if (students.length > 0) {
+    const modColors = ['#ff7c4d','#3ecf8e','#7c6bff'];
+    const section = document.createElement('div');
+    section.style.marginBottom = '24px';
+    section.innerHTML = '<div style="font-family:monospace;font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:10px;">Returning Students</div>';
+
+    students.forEach(s => {
+      const card = document.createElement('div');
+      card.style.cssText = 'background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;cursor:pointer;margin-bottom:8px;display:flex;align-items:center;gap:14px;transition:border-color 0.15s;';
+      card.onmouseover = () => card.style.borderColor = 'var(--accent)';
+      card.onmouseout  = () => card.style.borderColor = 'var(--border)';
+      card.onclick = () => loginStudent(s.name);
+
+      const barHtml = (s.moduleStates || []).map((ms, i) => {
+        const col = (ms === 'complete' || ms === 'learning') ? (modColors[i] || '#7c6bff') : 'rgba(255,255,255,0.08)';
+        const op  = ms === 'complete' ? '1' : ms === 'learning' ? '0.5' : '0.3';
+        return `<div style="flex:1;height:4px;border-radius:2px;background:${col};opacity:${op}"></div>`;
+      }).join('');
+
+      card.innerHTML = `
+        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1rem;flex-shrink:0;color:#fff;">${s.name[0].toUpperCase()}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:700;font-size:0.95rem;margin-bottom:4px;color:#ffffff;">${s.name}</div>
+          <div style="display:flex;gap:4px;margin-bottom:5px;">${barHtml}</div>
+          <div style="font-family:monospace;font-size:0.6rem;color:rgba(255,255,255,0.5);">${s.completedCount}/${MODULES.length} modules · ${phaseLabel[s.phase] || ''} · ${timeAgo(s.savedAt)}</div>
+        </div>
+        <div style="font-size:1.2rem;color:rgba(255,255,255,0.4);">›</div>
+      `;
+      section.appendChild(card);
+    });
+    wrap.appendChild(section);
+  }
+
+  // New student form
+  const formBox = document.createElement('div');
+  formBox.style.cssText = 'background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;';
+  formBox.innerHTML = `
+    <div style="font-family:monospace;font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:12px;">New Student</div>
+    <input id="name-input" type="text" placeholder="Enter your first name…" maxlength="20"
+      style="width:100%;padding:12px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:#ffffff;font-family:'Syne',sans-serif;font-size:0.95rem;outline:none;margin-bottom:10px;box-sizing:border-box;" />
+    <button id="start-btn" style="width:100%;padding:13px;background:var(--accent);border:none;border-radius:8px;color:white;font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;cursor:pointer;">
+      Start Learning →
+    </button>
+  `;
+  wrap.appendChild(formBox);
+
+  // Manage link
+  if (students.length > 0) {
+    const mgmt = document.createElement('div');
+    mgmt.style.cssText = 'margin-top:16px;text-align:center;';
+    mgmt.innerHTML = '<button onclick="showManageStudents()" style="background:none;border:none;color:rgba(255,255,255,0.45);font-family:monospace;font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;text-decoration:underline;">Manage Students</button>';
+    wrap.appendChild(mgmt);
+  }
+
+  el.innerHTML = '';
+  el.appendChild(wrap);
+
+  // Wire up events after DOM insertion
+  const nameInput = document.getElementById('name-input');
+  const startBtn  = document.getElementById('start-btn');
+  if (nameInput) nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') startNewStudent(); });
+  if (nameInput) nameInput.addEventListener('focus', () => nameInput.style.borderColor = 'var(--accent)');
+  if (nameInput) nameInput.addEventListener('blur',  () => nameInput.style.borderColor = 'var(--border)');
+  if (startBtn)  startBtn.addEventListener('click', startNewStudent);
+
+  try {
+    document.getElementById('phase-tag').textContent = 'Welcome';
+    document.getElementById('phase-tag').className = 'phase-tag phase-assess';
+    document.getElementById('topbar-title').textContent = 'Engaging Math · Grade 5';
+  } catch(e) {}
 }
 
 function showManageStudents() {
@@ -1699,17 +1737,28 @@ function goNextModule() {
 //  BOOT
 // ══════════════════════════════════════════════════════════════════
 function init() {
-  // Force all text white inside the app
-  const style = document.createElement('style');
-  style.textContent = `
-    #content, #content * { color: #ffffff !important; }
-    .shell { background: #0d0e14 !important; color: #ffffff !important; }
-    .sidebar { background: #16192a !important; }
-    .main { background: #0d0e14 !important; }
-    input { color: #ffffff !important; }
-  `;
-  document.head.appendChild(style);
-  showStudentPicker();
+  try {
+    // Force all text white inside the app
+    const style = document.createElement('style');
+    style.textContent = `
+      #content, #content * { color: #ffffff !important; }
+      .shell { background: #0d0e14 !important; color: #ffffff !important; }
+      .sidebar { background: #16192a !important; }
+      .main { background: #0d0e14 !important; }
+      input { color: #ffffff !important; }
+    `;
+    document.head.appendChild(style);
+    showStudentPicker();
+  } catch(err) {
+    // Show error visibly so we can debug
+    const el = document.getElementById('content');
+    if (el) {
+      el.style.color = '#ffffff';
+      el.style.padding = '40px';
+      el.innerHTML = '<h2 style="color:#ff6b6b;margin-bottom:12px;">Load Error</h2><pre style="color:rgba(255,255,255,0.7);font-size:0.75rem;white-space:pre-wrap;">' + err.toString() + '\n' + (err.stack || '') + '</pre>';
+    }
+    console.error('Init error:', err);
+  }
 }
 
 if (document.readyState === 'loading') {
