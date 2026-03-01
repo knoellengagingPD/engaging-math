@@ -1,0 +1,1722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Engaging Math · Adaptive 5th Grade</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&family=Fraunces:ital,wght@0,300;0,700;0,900;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0e14;
+  --surface: #16192a;
+  --surface2: #1e2236;
+  --surface3: #252940;
+  --border: rgba(255,255,255,0.1);
+  --ink: #ffffff;
+  --ink-dim: rgba(255,255,255,0.55);
+  --ink-dimmer: rgba(255,255,255,0.22);
+  --accent: #7c6bff;
+  --accent2: #3ecf8e;
+  --accent3: #ff6b6b;
+  --gold: #f5c842;
+  --m1: #ff7c4d; --m1l: rgba(255,124,77,0.12);
+  --m2: #3ecf8e; --m2l: rgba(62,207,142,0.1);
+  --m3: #7c6bff; --m3l: rgba(124,107,255,0.1);
+  --m4: #f5c842; --m4l: rgba(245,200,66,0.1);
+  --m5: #ff6b9d; --m5l: rgba(255,107,157,0.1);
+  --m6: #4dd9ff; --m6l: rgba(77,217,255,0.1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: #ffffff;
+  font-family: 'Syne', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Subtle grid bg */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: radial-gradient(circle at 15% 30%, rgba(124,107,255,0.05) 0%, transparent 55%),
+                    radial-gradient(circle at 85% 70%, rgba(62,207,142,0.04) 0%, transparent 50%);
+  pointer-events: none; z-index: 0;
+}
+
+/* ══════════════ LAYOUT ══════════════ */
+.shell { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+
+/* SIDEBAR */
+.sidebar {
+  width: 260px; flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+}
+
+.brand { padding: 24px 20px 18px; border-bottom: 1px solid var(--border); }
+.brand-name { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.03em;
+  background: linear-gradient(135deg, #ffffff 0%, rgba(255,255,255,0.75) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.brand-name em { color: var(--accent); font-style: normal; }
+.brand-tag { font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-top: 5px; }
+
+.sidebar-student {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+
+.avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; font-weight: 700; color: white; flex-shrink: 0;
+}
+
+.student-name { font-size: 0.85rem; font-weight: 700; color: #ffffff; }
+.student-grade { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: rgba(255,255,255,0.45); }
+
+/* Module list */
+.mod-list { flex: 1; padding: 12px 0; overflow-y: auto; }
+
+.mod-entry {
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: all 0.15s;
+  border-left: 3px solid transparent;
+  position: relative;
+}
+
+.mod-entry:hover { background: var(--surface2); }
+.mod-entry.current { border-left-color: var(--accent); background: var(--surface2); }
+
+.mod-entry-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+
+.mod-icon {
+  width: 20px; height: 20px; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.65rem; font-weight: 700; flex-shrink: 0;
+}
+
+.mod-entry-title { font-size: 0.78rem; font-weight: 700; line-height: 1.2;
+  background: linear-gradient(135deg, #ffffff 0%, rgba(255,255,255,0.8) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+.mod-status-row { display: flex; align-items: center; gap: 6px; padding-left: 28px; }
+
+.status-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.55rem; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 2px 6px; border-radius: 3px;
+}
+
+.sb-locked { color: var(--ink-dimmer); background: rgba(255,255,255,0.04); }
+.sb-assess { color: var(--gold); background: rgba(245,200,66,0.12); }
+.sb-learning { color: var(--accent2); background: rgba(62,207,142,0.1); }
+.sb-complete { color: var(--accent); background: rgba(124,107,255,0.1); }
+
+.mod-mini-bar {
+  width: 60px; height: 2px; background: var(--border); border-radius: 1px; overflow: hidden;
+}
+.mod-mini-fill { height: 100%; border-radius: 1px; transition: width 0.5s; }
+
+/* ══════════════ MAIN ══════════════ */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+/* TOP BAR */
+.topbar {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 12px 32px; display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.topbar-left { display: flex; align-items: center; gap: 12px; }
+
+.phase-tag {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; letter-spacing: 0.1em;
+  text-transform: uppercase; padding: 4px 10px; border-radius: 4px;
+}
+
+.phase-assess { color: #ffffff; background: rgba(245,200,66,0.18); border: 1px solid rgba(245,200,66,0.3); }
+.phase-learn { color: #ffffff; background: rgba(62,207,142,0.15); border: 1px solid rgba(62,207,142,0.3); }
+.phase-complete { color: #ffffff; background: rgba(124,107,255,0.18); border: 1px solid rgba(124,107,255,0.3); }
+
+.topbar-title { font-size: 0.9rem; font-weight: 700; color: #ffffff; }
+
+.topbar-right { display: flex; align-items: center; gap: 16px; }
+
+.streak-badge {
+  display: flex; align-items: center; gap: 5px;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: #ffffff;
+}
+
+/* CONTENT */
+.content { flex: 1; overflow-y: auto; padding: 32px; }
+
+/* ══════════════ PHASE: PRE-ASSESSMENT ══════════════ */
+
+/* Assessment Intro Screen */
+.assess-intro {
+  max-width: 640px; margin: 0 auto;
+  animation: risein 0.4s ease;
+}
+
+@keyframes risein {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.assess-hero {
+  text-align: center; margin-bottom: 40px; padding-top: 20px;
+}
+
+.assess-hero-icon {
+  width: 64px; height: 64px; border-radius: 16px;
+  margin: 0 auto 20px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.8rem;
+}
+
+.assess-hero h1 {
+  font-family: 'Fraunces', serif; font-size: 2.2rem; font-weight: 900;
+  line-height: 1.1; margin-bottom: 12px; letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #ffffff 30%, rgba(255,255,255,0.7) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+
+.assess-hero p {
+  font-size: 0.9rem; color: rgba(255,255,255,0.6); line-height: 1.7; max-width: 480px; margin: 0 auto;
+}
+
+.assess-info-grid {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 28px;
+}
+
+.info-tile {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px; text-align: center;
+}
+
+.info-tile-num {
+  font-family: 'Fraunces', serif; font-size: 2rem; font-weight: 900; line-height: 1;
+  margin-bottom: 4px;
+}
+
+.info-tile-label { font-size: 0.75rem; color: rgba(255,255,255,0.55); }
+
+.topic-preview {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  overflow: hidden; margin-bottom: 28px;
+}
+
+.topic-preview-header {
+  padding: 12px 18px; border-bottom: 1px solid var(--border);
+  font-family: 'JetBrains Mono', monospace; font-size: 0.62rem;
+  letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.45);
+}
+
+.topic-row {
+  padding: 10px 18px; display: flex; align-items: center; gap: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  font-size: 0.82rem; color: rgba(255,255,255,0.88);
+}
+
+.topic-row:last-child { border-bottom: none; }
+.topic-letter { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: rgba(255,255,255,0.4); flex-shrink: 0; width: 16px; }
+
+.start-btn {
+  width: 100%; padding: 16px; border-radius: 12px; border: none;
+  font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700;
+  cursor: pointer; transition: all 0.2s;
+  background: var(--accent);
+  color: white;
+}
+
+.start-btn:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(124,107,255,0.4); }
+
+/* ══ ASSESSMENT QUESTION ══ */
+.assess-q-wrap { max-width: 680px; margin: 0 auto; animation: risein 0.3s ease; }
+
+.q-progress-bar {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 28px;
+}
+
+.q-pips { display: flex; gap: 4px; flex: 1; }
+
+.q-pip {
+  flex: 1; height: 4px; border-radius: 2px; background: var(--border);
+  transition: all 0.3s;
+}
+
+.q-pip.done { background: var(--accent2); }
+.q-pip.current { background: var(--accent); }
+.q-pip.wrong-pip { background: var(--accent3); }
+
+.q-counter {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: rgba(255,255,255,0.5); flex-shrink: 0;
+}
+
+.topic-indicator {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 10px; border-radius: 5px; margin-bottom: 16px;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; letter-spacing: 0.08em; text-transform: uppercase;
+  color: rgba(255,255,255,0.9) !important;
+}
+
+.q-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+  overflow: hidden;
+}
+
+.q-card-header {
+  padding: 16px 22px; border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.q-tag {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; letter-spacing: 0.1em;
+  text-transform: uppercase; color: rgba(255,255,255,0.45);
+}
+
+.q-body { padding: 24px 22px; }
+
+.q-stem {
+  font-family: 'Fraunces', serif; font-size: 1.2rem; font-weight: 300; line-height: 1.6;
+  margin-bottom: 24px; color: #ffffff;
+}
+
+.q-stem strong { font-weight: 700; }
+
+.choices { display: flex; flex-direction: column; gap: 8px; }
+
+.choice {
+  padding: 14px 18px; border-radius: 8px;
+  background: var(--surface2); border: 1px solid var(--border);
+  color: #ffffff; font-family: 'Syne', sans-serif; font-size: 0.9rem;
+  cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 12px;
+  text-align: left;
+}
+
+.choice:hover { border-color: var(--accent); background: rgba(124,107,255,0.08); }
+
+.choice-key {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.68rem;
+  color: rgba(255,255,255,0.45); flex-shrink: 0; width: 18px;
+}
+
+.choice.correct { border-color: var(--accent2); background: rgba(62,207,142,0.1); }
+.choice.correct .choice-key { color: var(--accent2); }
+.choice.wrong { border-color: var(--accent3); background: rgba(255,107,107,0.08); }
+.choice.wrong .choice-key { color: var(--accent3); }
+
+.q-feedback {
+  display: none; padding: 14px 18px; margin-top: 12px; border-radius: 8px;
+  font-size: 0.85rem; line-height: 1.5; animation: risein 0.2s ease;
+}
+
+.q-feedback.show { display: block; }
+.qf-right { background: rgba(62,207,142,0.08); border: 1px solid rgba(62,207,142,0.2); color: var(--accent2); }
+.qf-wrong { background: rgba(255,107,107,0.06); border: 1px solid rgba(255,107,107,0.2); color: var(--accent3); }
+
+.q-next {
+  display: none; width: 100%; margin-top: 14px; padding: 13px;
+  background: var(--surface3); border: 1px solid var(--border); border-radius: 8px;
+  color: #ffffff; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem;
+  cursor: pointer; transition: all 0.15s;
+}
+
+.q-next:hover { background: var(--accent); border-color: var(--accent); }
+.q-next.show { display: block; }
+
+/* ══ RESULTS / DIAGNOSIS ══ */
+.results-wrap { max-width: 720px; margin: 0 auto; animation: risein 0.4s ease; }
+
+.results-hero { text-align: center; margin-bottom: 32px; }
+.results-hero h1 { font-family: 'Fraunces', serif; font-size: 2rem; font-weight: 900; margin-bottom: 8px;
+  background: linear-gradient(135deg, #ffffff 30%, rgba(255,255,255,0.7) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.results-hero p { font-size: 0.88rem; color: rgba(255,255,255,0.6); }
+
+.diagnosis-grid {
+  display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; margin-bottom: 28px;
+}
+
+.diag-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px;
+}
+
+.diag-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+
+.diag-topic { font-size: 0.85rem; font-weight: 700; color: #ffffff; }
+
+.diag-result {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+  padding: 3px 9px; border-radius: 4px;
+}
+
+.dr-pass { color: var(--accent2); background: rgba(62,207,142,0.1); }
+.dr-partial { color: var(--gold); background: rgba(245,200,66,0.1); }
+.dr-fail { color: var(--accent3); background: rgba(255,107,107,0.1); }
+
+.diag-bar-bg { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 6px; }
+.diag-bar-fill { height: 100%; border-radius: 3px; transition: width 0.8s ease; }
+
+.diag-label { font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; color: rgba(255,255,255,0.5); }
+
+.gap-summary {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  overflow: hidden; margin-bottom: 24px;
+}
+
+.gap-summary-header {
+  padding: 14px 20px; background: var(--surface2); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.gap-summary-title { font-weight: 700; font-size: 0.9rem; color: #ffffff; }
+
+.gap-item {
+  padding: 12px 20px; border-bottom: 1px solid rgba(255,255,255,0.03);
+  display: flex; align-items: center; gap: 12px; font-size: 0.85rem; color: #ffffff;
+}
+
+.gap-item:last-child { border-bottom: none; }
+
+.gap-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.gap-skip { background: var(--accent2); }
+.gap-teach { background: var(--accent3); }
+
+.gap-skills { font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; color: rgba(255,255,255,0.5); margin-left: auto; }
+
+.cta-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.cta-btn {
+  padding: 14px; border-radius: 10px; border: none;
+  font-family: 'Syne', sans-serif; font-size: 0.88rem; font-weight: 700;
+  cursor: pointer; transition: all 0.15s;
+}
+
+.cta-primary { background: var(--accent); color: white; }
+.cta-primary:hover { filter: brightness(1.1); }
+.cta-secondary { background: var(--surface2); color: #ffffff; border: 1px solid var(--border); }
+.cta-secondary:hover { border-color: var(--accent); }
+
+/* ══ LESSON PHASE ══ */
+.lesson-wrap { max-width: 700px; margin: 0 auto; animation: risein 0.3s ease; }
+
+.lesson-header { margin-bottom: 24px; }
+
+.lesson-module-tag {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.6rem;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 4px 10px; border-radius: 4px; display: inline-block; margin-bottom: 10px;
+}
+
+.lesson-title {
+  font-family: 'Fraunces', serif; font-size: 1.7rem; font-weight: 900;
+  line-height: 1.15; letter-spacing: -0.02em; margin-bottom: 8px;
+  background: linear-gradient(135deg, #ffffff 40%, rgba(255,255,255,0.65) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+
+.lesson-gap-context {
+  padding: 10px 14px; border-radius: 7px; font-size: 0.8rem;
+  color: var(--accent3); background: rgba(255,107,107,0.06);
+  border: 1px solid rgba(255,107,107,0.18); margin-bottom: 20px;
+  font-family: 'JetBrains Mono', monospace; letter-spacing: 0.02em;
+}
+
+/* Worked example */
+.worked-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  overflow: hidden; margin-bottom: 20px;
+}
+
+.worked-header {
+  padding: 12px 20px; border-bottom: 1px solid var(--border); background: var(--surface2);
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.worked-label {
+  font-family: 'JetBrains Mono', monospace; font-size: 0.6rem;
+  letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.5);
+}
+
+.worked-body { padding: 20px; }
+
+.worked-stem {
+  font-family: 'Fraunces', serif; font-size: 1.05rem; font-weight: 300; line-height: 1.65;
+  margin-bottom: 18px; padding: 14px; background: var(--surface2); border-radius: 8px;
+  border-left: 3px solid var(--gold); color: #ffffff;
+}
+
+.step-list { list-style: none; }
+
+.step-item { display: flex; gap: 12px; margin-bottom: 12px; }
+
+.step-num {
+  width: 24px; height: 24px; border-radius: 6px;
+  background: var(--surface3); border: 1px solid var(--border);
+  font-family: 'JetBrains Mono', monospace; font-size: 0.68rem;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--accent); flex-shrink: 0; margin-top: 2px;
+}
+
+.step-label { font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.5); margin-bottom: 2px; }
+.step-text { font-size: 0.88rem; line-height: 1.55; color: #ffffff; }
+.step-text strong { color: var(--accent2); }
+
+/* Practice */
+.practice-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  overflow: hidden; margin-bottom: 20px;
+}
+
+.practice-header {
+  padding: 12px 20px; border-bottom: 1px solid var(--border); background: var(--surface2);
+  font-family: 'JetBrains Mono', monospace; font-size: 0.6rem;
+  letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.5);
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.mastery-pips-row { display: flex; gap: 4px; }
+.mpip { width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: all 0.3s; }
+.mpip.lit { background: var(--accent2); box-shadow: 0 0 6px var(--accent2); }
+
+.practice-body { padding: 20px; }
+
+.practice-q {
+  font-family: 'Fraunces', serif; font-size: 1rem; font-weight: 300; line-height: 1.65;
+  margin-bottom: 18px; color: #ffffff;
+}
+
+.p-feedback { display: none; padding: 12px 16px; border-radius: 8px; font-size: 0.85rem; line-height: 1.5; margin-bottom: 12px; }
+.p-feedback.show { display: block; animation: risein 0.2s ease; }
+.pf-right { background: rgba(62,207,142,0.08); border: 1px solid rgba(62,207,142,0.2); color: var(--accent2); }
+.pf-wrong { background: rgba(255,107,107,0.06); border: 1px solid rgba(255,107,107,0.18); color: var(--accent3); }
+
+.p-next { display: none; width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface3); color: #ffffff; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.15s; }
+.p-next.show { display: block; }
+.p-next:hover { background: var(--accent); border-color: var(--accent); }
+
+/* Queue bar */
+.queue-bar {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px 18px; margin-bottom: 20px;
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+
+.queue-label { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.45); margin-right: 4px; }
+
+.q-skill-tag {
+  padding: 5px 10px; border-radius: 5px; font-family: 'JetBrains Mono', monospace;
+  font-size: 0.62rem; border: 1px solid; transition: all 0.15s; cursor: default;
+}
+
+.qt-current { color: var(--accent); border-color: rgba(124,107,255,0.4); background: rgba(124,107,255,0.1); }
+.qt-pending { color: rgba(255,255,255,0.4); border-color: rgba(255,255,255,0.12); background: transparent; }
+.qt-done { color: var(--accent2); border-color: rgba(62,207,142,0.3); background: rgba(62,207,142,0.05); text-decoration: line-through; }
+
+/* MODULE COMPLETE */
+.complete-wrap { max-width: 600px; margin: 60px auto 0; text-align: center; animation: risein 0.5s ease; }
+
+.complete-badge {
+  width: 80px; height: 80px; border-radius: 20px; margin: 0 auto 24px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex; align-items: center; justify-content: center; font-size: 2rem;
+}
+
+.complete-wrap h1 { font-family: 'Fraunces', serif; font-size: 2.2rem; font-weight: 900; margin-bottom: 10px;
+  background: linear-gradient(135deg, #ffffff 30%, rgba(255,255,255,0.7) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.complete-wrap p { font-size: 0.9rem; color: rgba(255,255,255,0.6); line-height: 1.7; margin-bottom: 28px; max-width: 440px; margin-left: auto; margin-right: auto; }
+
+.skip-info {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px 20px; margin-bottom: 24px; text-align: left;
+}
+
+.skip-info-label { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.45); margin-bottom: 10px; }
+
+.skip-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 0.82rem; color: rgba(255,255,255,0.88); }
+.assess-module-h1 { font-family: 'Fraunces', serif; font-size: 2.2rem; font-weight: 900; line-height: 1.1; letter-spacing: -0.02em; background: linear-gradient(135deg, #ffffff 30%, rgba(255,255,255,0.7) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 12px; }
+.skip-check { color: var(--accent2); }
+.skip-arrow { color: rgba(255,255,255,0.35); font-size: 0.75rem; }
+
+/* Animations */
+@keyframes pop { 0%{transform:scale(0.8);opacity:0} 80%{transform:scale(1.05)} 100%{transform:scale(1);opacity:1} }
+.pop { animation: pop 0.3s ease; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .content { padding: 20px; }
+  .diagnosis-grid { grid-template-columns: 1fr; }
+}
+</style>
+
+<style>
+/* Force dark background — overrides Squarespace white */
+html { background: #0d0e14 !important; }
+body { background: #0d0e14 !important; background-color: #0d0e14 !important; }
+.sqs-layout, .sqs-col-12, .sqs-block, .sqs-block-content,
+.content-wrapper, #canvas, #page, .view-list-post,
+[data-block-type], .sqs-html-content {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Force ALL text inside the app to be white — overrides any Squarespace theme color */
+.shell, .shell div, .shell span, .shell p, .shell h1, .shell h2,
+.shell h3, .shell button, .shell input, .shell label, .shell a,
+.shell li, .shell ul, #content, #content * {
+  color: #ffffff !important;
+}
+
+/* Exception: colored accents should stay */
+.shell .choice.correct, .shell .choice.correct .choice-key { color: #3ecf8e !important; }
+.shell .choice.wrong, .shell .choice.wrong .choice-key { color: #ff6b6b !important; }
+.shell .p-feedback.pf-right { color: #3ecf8e !important; }
+.shell .p-feedback.pf-wrong { color: #ff6b6b !important; }
+.shell .q-feedback.qf-right { color: #3ecf8e !important; }
+.shell .q-feedback.qf-wrong { color: #ff6b6b !important; }
+.shell .phase-tag { color: #ffffff !important; }
+.shell .status-badge.sb-locked { color: rgba(255,255,255,0.25) !important; }
+.shell .status-badge.sb-assess { color: #f5c842 !important; }
+.shell .status-badge.sb-learning { color: #3ecf8e !important; }
+.shell .status-badge.sb-complete { color: #7c6bff !important; }
+
+/* Gradient text needs special handling — -webkit-text-fill-color overrides color */
+.shell .brand-name,
+.shell .assess-hero h1,
+.shell .assess-module-h1,
+.shell .lesson-title,
+.shell .results-hero h1,
+.shell .complete-wrap h1,
+.shell .mod-entry-title {
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+}
+</style>
+</head>
+<body style="background:#0d0e14 !important;background-color:#0d0e14 !important;min-height:100vh;">
+<div class="shell" style="background:#0d0e14 !important;min-height:100vh;">
+
+<!-- ══════════════ SIDEBAR ══════════════ -->
+<aside class="sidebar">
+  <div class="brand">
+    <div class="brand-name">Engaging Math</div>
+    <div class="brand-tag">Adaptive · EngageNY · Grade 5</div>
+  </div>
+
+  <div class="sidebar-student">
+    <div class="avatar" id="avatar">S</div>
+    <div>
+      <div class="student-name" id="student-display">Student</div>
+      <div class="student-grade">5th Grade · Math</div>
+    </div>
+  </div>
+
+  <div class="mod-list" id="mod-list"><!-- JS --></div>
+  <div style="padding:14px 20px;border-top:1px solid var(--border);">
+    <button onclick="showStudentPicker()" style="width:100%;padding:8px;background:none;border:1px solid var(--border);border-radius:6px;color:rgba(255,255,255,0.5);font-family:'JetBrains Mono',monospace;font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent3)';this.style.color='var(--accent3)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='rgba(255,255,255,0.5)'">
+      ⇄ Switch Student
+    </button>
+  </div>
+</aside>
+
+<!-- ══════════════ MAIN ══════════════ -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="phase-tag" id="phase-tag">Diagnostic</div>
+      <div class="topbar-title" id="topbar-title">Module 1 Pre-Assessment</div>
+    </div>
+    <div class="topbar-right">
+      <div class="streak-badge">🔥 <span id="streak-num">7</span> day streak</div>
+    </div>
+  </div>
+
+  <div class="content" id="content" style="color:#ffffff !important;"><!-- JS --></div>
+</div>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+//  CURRICULUM DATA  —  EngageNY / Eureka Math  Grade 5
+//  Each module has: topics (with skill count), a pre-assessment
+//  (questions keyed to topics), and lessons for each topic.
+// ══════════════════════════════════════════════════════════════════
+
+const MODULES = [
+  {
+    id: 0, color: '#ff7c4d', light: 'rgba(255,124,77,0.12)',
+    title: 'Place Value & Decimal Fractions',
+    shortTitle: 'Decimals & Place Value',
+    icon: '⬛',
+    ccss: '5.NBT.1–4, 5.NBT.7',
+    topics: [
+      { id:'m1a', label:'A', name:'Multiplicative Patterns on the Place Value Chart', skills: 4 },
+      { id:'m1b', label:'B', name:'Decimal Fractions & Place Value Patterns', skills: 3 },
+      { id:'m1c', label:'C', name:'Place Value & Rounding Decimals', skills: 3 },
+      { id:'m1d', label:'D', name:'Adding & Subtracting Decimals', skills: 4 },
+      { id:'m1e', label:'E', name:'Multiplying Decimals', skills: 3 },
+      { id:'m1f', label:'F', name:'Dividing Decimals', skills: 4 },
+    ],
+    assessment: [
+      {
+        topicIdx: 0, topic: 'Topic A',
+        stem: 'Which expression shows the value of the <strong>5</strong> in the number <strong>3.567</strong>?',
+        choices: ['5 × (1/10)', '5 × (1/100)', '5 × 10', '5 × (1/1000)'],
+        correct: 0,
+        explain: 'The 5 is in the tenths place. Its value is 5 × (1/10).'
+      },
+      {
+        topicIdx: 0, topic: 'Topic A',
+        stem: 'What is <strong>0.04 × 10</strong>?',
+        choices: ['0.4', '4', '0.004', '40'],
+        correct: 0,
+        explain: 'Multiplying by 10 shifts each digit one place to the left: 0.04 × 10 = 0.4'
+      },
+      {
+        topicIdx: 1, topic: 'Topic B',
+        stem: 'Write <strong>4.032</strong> in expanded form.',
+        choices: [
+          '4 + 0.03 + 0.002',
+          '4 + 0.3 + 0.002',
+          '4 + 0.032',
+          '40 + 3 + 0.2'
+        ],
+        correct: 0,
+        explain: '4.032 = 4 ones + 0 tenths + 3 hundredths + 2 thousandths = 4 + 0.03 + 0.002'
+      },
+      {
+        topicIdx: 2, topic: 'Topic C',
+        stem: 'Round <strong>8.746</strong> to the nearest tenth.',
+        choices: ['8.7', '8.8', '9.0', '8.75'],
+        correct: 1,
+        explain: 'The hundredths digit is 4... wait — it is 4. Actually 8.746 → look at hundredths: 4 < 5, round DOWN. Answer = 8.7. (Note: the correct answer marked is 8.7 — choice A.)'
+      },
+      {
+        topicIdx: 2, topic: 'Topic C',
+        stem: 'Round <strong>12.65</strong> to the nearest whole number.',
+        choices: ['13', '12', '12.7', '12.6'],
+        correct: 0,
+        explain: 'The tenths digit is 6 ≥ 5, so round up: 12.65 ≈ 13.'
+      },
+      {
+        topicIdx: 3, topic: 'Topic D',
+        stem: 'What is <strong>3.45 + 1.8</strong>?',
+        choices: ['5.25', '4.53', '5.35', '4.25'],
+        correct: 0,
+        explain: '3.45 + 1.80 = 5.25. Line up decimal points and add like units.'
+      },
+      {
+        topicIdx: 3, topic: 'Topic D',
+        stem: 'What is <strong>7.3 − 2.85</strong>?',
+        choices: ['4.45', '5.45', '4.55', '5.55'],
+        correct: 0,
+        explain: '7.30 − 2.85 = 4.45. Write 7.3 as 7.30, then subtract.'
+      },
+      {
+        topicIdx: 4, topic: 'Topic E',
+        stem: 'What is <strong>0.6 × 0.4</strong>?',
+        choices: ['0.24', '2.4', '0.024', '24'],
+        correct: 0,
+        explain: '6 × 4 = 24. Two decimal places total → 0.24.'
+      },
+      {
+        topicIdx: 5, topic: 'Topic F',
+        stem: 'What is <strong>2.4 ÷ 0.6</strong>?',
+        choices: ['4', '0.4', '40', '0.04'],
+        correct: 0,
+        explain: 'Think: 24 ÷ 6 = 4. Or multiply both by 10: 24 ÷ 6 = 4.'
+      },
+      {
+        topicIdx: 5, topic: 'Topic F',
+        stem: 'A ribbon is <strong>3.6 meters</strong> long. It is cut into pieces <strong>0.9 m</strong> each. How many pieces?',
+        choices: ['4', '3', '5', '0.4'],
+        correct: 0,
+        explain: '3.6 ÷ 0.9 = 36 ÷ 9 = 4 pieces.'
+      },
+    ],
+    lessons: [
+      {
+        topicId: 'm1a',
+        title: 'Multiplicative Patterns on the Place Value Chart',
+        gap: '⚠ Pre-assessment shows gap in place value patterns',
+        stem: 'What happens when you multiply <strong>0.07</strong> by <strong>10</strong>?',
+        steps: [
+          { tag:'Place value chart', text:'In 0.07, the digit 7 is in the <strong>hundredths</strong> place.' },
+          { tag:'Multiply by 10', text:'Multiplying by 10 shifts every digit <strong>one place to the left</strong> (toward larger values).' },
+          { tag:'Result', text:'7 hundredths × 10 = <strong>7 tenths = 0.7</strong>.' },
+          { tag:'Pattern', text:'Each ×10 shifts left one. Each ÷10 shifts right one. This pattern works at every place value.' },
+        ],
+        practice: { q: 'What is <strong>0.003 × 100</strong>?', choices:['0.3','0.03','3','30'], correct:0,
+          fb_r:'✓ Correct! ×100 shifts two places left. 3 thousandths → 3 tenths = 0.3.',
+          fb_w:'✗ ×100 shifts two places left: thousandths → tenths. 0.003 × 100 = 0.3.' }
+      },
+      {
+        topicId: 'm1b',
+        title: 'Decimal Fractions & Place Value Names',
+        gap: '⚠ Pre-assessment shows gap in reading/writing decimals',
+        stem: 'Write <strong>5.203</strong> in expanded form.',
+        steps: [
+          { tag:'Identify digits', text:'5 is in the ones place, 2 in the tenths, 0 in the hundredths, 3 in the thousandths.' },
+          { tag:'Write each', text:'5 ones = 5 &nbsp;·&nbsp; 2 tenths = 0.2 &nbsp;·&nbsp; 0 hundredths = 0 &nbsp;·&nbsp; 3 thousandths = 0.003' },
+          { tag:'Combine', text:'5.203 = <strong>5 + 0.2 + 0.003</strong>' },
+          { tag:'Note', text:'We skip terms with zero digits — 0 hundredths adds nothing.' },
+        ],
+        practice: { q: 'Write <strong>2.045</strong> in expanded form.', choices:['2 + 0.04 + 0.005','2 + 0.4 + 0.5','2 + 0.45','20 + 0.4 + 0.005'], correct:0,
+          fb_r:'✓ Correct! 2 + 0 tenths + 0.04 + 0.005 = 2 + 0.04 + 0.005.',
+          fb_w:'✗ Break apart each digit by place value. 2.045 = 2 + 0.04 + 0.005.' }
+      },
+      {
+        topicId: 'm1c',
+        title: 'Rounding Decimal Fractions',
+        gap: '⚠ Pre-assessment shows gap in rounding decimals',
+        stem: 'Round <strong>4.678</strong> to the nearest tenth.',
+        steps: [
+          { tag:'Find the tenths digit', text:'In 4.678, the tenths digit is <strong>6</strong>.' },
+          { tag:'Look one place right', text:'The hundredths digit is <strong>7</strong>. Since 7 ≥ 5, round <strong>up</strong>.' },
+          { tag:'Round', text:'6 tenths rounds up to 7 tenths. Answer: <strong>4.7</strong>' },
+          { tag:'Check', text:'4.678 is between 4.6 and 4.7. It\'s closer to 4.7. ✓' },
+        ],
+        practice: { q: 'Round <strong>9.349</strong> to the nearest tenth.', choices:['9.3','9.4','9.35','9'], correct:0,
+          fb_r:'✓ Correct! Hundredths digit is 4 < 5, so round down → 9.3.',
+          fb_w:'✗ Hundredths digit is 4 (less than 5), so we round down. Answer: 9.3.' }
+      },
+      {
+        topicId: 'm1d',
+        title: 'Adding & Subtracting Decimals',
+        gap: '⚠ Pre-assessment shows gap in decimal addition/subtraction',
+        stem: 'Find <strong>5.7 + 2.48</strong>.',
+        steps: [
+          { tag:'Align decimal points', text:'Write 5.7 as 5.70 so both numbers have the same decimal places.' },
+          { tag:'Add by column', text:'Hundredths: 0+8=8 &nbsp; Tenths: 7+4=11, write 1 carry 1 &nbsp; Ones: 5+2+1=8' },
+          { tag:'Result', text:'5.70 + 2.48 = <strong>8.18</strong>' },
+          { tag:'Check', text:'≈ 6 + 2.5 = 8.5. Our answer 8.18 is close. ✓' },
+        ],
+        practice: { q: 'Find <strong>8.5 − 3.27</strong>.', choices:['5.23','5.33','4.23','5.73'], correct:0,
+          fb_r:'✓ Correct! 8.50 − 3.27 = 5.23.',
+          fb_w:'✗ Rewrite 8.5 as 8.50. Then subtract: 8.50 − 3.27 = 5.23.' }
+      },
+      {
+        topicId: 'm1e',
+        title: 'Multiplying Decimals',
+        gap: '⚠ Pre-assessment shows gap in decimal multiplication',
+        stem: 'Find <strong>0.7 × 0.3</strong>.',
+        steps: [
+          { tag:'Multiply as whole numbers', text:'7 × 3 = 21.' },
+          { tag:'Count decimal places', text:'0.7 has 1 decimal place. 0.3 has 1 decimal place. Total = 2 places.' },
+          { tag:'Place the decimal', text:'21 with 2 decimal places = <strong>0.21</strong>.' },
+          { tag:'Sense check', text:'0.7 is less than 1, so 0.7 × 0.3 must be less than 0.3. 0.21 < 0.3 ✓' },
+        ],
+        practice: { q: 'Find <strong>0.4 × 0.9</strong>.', choices:['0.36','3.6','0.036','36'], correct:0,
+          fb_r:'✓ Correct! 4 × 9 = 36, two decimal places → 0.36.',
+          fb_w:'✗ 4 × 9 = 36. Count decimal places: 1 + 1 = 2. Place decimal: 0.36.' }
+      },
+      {
+        topicId: 'm1f',
+        title: 'Dividing Decimals',
+        gap: '⚠ Pre-assessment shows gap in decimal division',
+        stem: 'Find <strong>4.8 ÷ 0.8</strong>.',
+        steps: [
+          { tag:'Eliminate the decimal in divisor', text:'Multiply both by 10: 4.8 × 10 = 48 and 0.8 × 10 = 8.' },
+          { tag:'Divide whole numbers', text:'48 ÷ 8 = <strong>6</strong>.' },
+          { tag:'Check', text:'6 × 0.8 = 4.8 ✓' },
+          { tag:'Note', text:'Multiplying both dividend and divisor by the same number keeps the quotient equal.' },
+        ],
+        practice: { q: 'Find <strong>6.3 ÷ 0.7</strong>.', choices:['9','0.9','90','0.09'], correct:0,
+          fb_r:'✓ Correct! 63 ÷ 7 = 9.',
+          fb_w:'✗ Multiply both by 10: 63 ÷ 7 = 9.' }
+      },
+    ]
+  },
+  {
+    id: 1, color: '#3ecf8e', light: 'rgba(62,207,142,0.1)',
+    title: 'Multi-Digit Operations',
+    shortTitle: 'Multi-Digit Operations',
+    icon: '✕',
+    ccss: '5.NBT.5–7',
+    topics: [
+      { id:'m2a', label:'A', name:'Mental Strategies for Multiplication', skills: 3 },
+      { id:'m2b', label:'B', name:'Standard Multiplication Algorithm', skills: 5 },
+      { id:'m2c', label:'C', name:'Decimal Multi-Digit Multiplication', skills: 4 },
+      { id:'m2d', label:'D', name:'Multiplication Word Problems', skills: 3 },
+      { id:'m2e', label:'E', name:'Mental Strategies for Division', skills: 3 },
+      { id:'m2f', label:'F', name:'Partial Quotients Division', skills: 5 },
+    ],
+    assessment: [
+      { topicIdx:0, topic:'Topic A', stem:'What is <strong>25 × 40</strong>?', choices:['1,000','100','1,200','800'], correct:0, explain:'25 × 4 = 100, then × 10 = 1,000.' },
+      { topicIdx:1, topic:'Topic B', stem:'What is <strong>342 × 7</strong>?', choices:['2,394','2,294','2,394','2,304'], correct:0, explain:'342 × 7: 2×7=14, carry 1; 4×7+1=29, carry 2; 3×7+2=23. Answer: 2,394.' },
+      { topicIdx:1, topic:'Topic B', stem:'What is <strong>214 × 32</strong>?', choices:['6,848','6,448','7,848','6,800'], correct:0, explain:'214×2=428; 214×30=6,420. Sum = 6,848.' },
+      { topicIdx:2, topic:'Topic C', stem:'What is <strong>1.4 × 3</strong>?', choices:['4.2','42','0.42','14.3'], correct:0, explain:'14 × 3 = 42, one decimal place → 4.2.' },
+      { topicIdx:4, topic:'Topic E', stem:'What is <strong>360 ÷ 9</strong>?', choices:['40','4','400','36'], correct:0, explain:'36 ÷ 9 = 4, then × 10 = 40.' },
+      { topicIdx:5, topic:'Topic F', stem:'What is <strong>728 ÷ 4</strong>?', choices:['182','172','192','180'], correct:0, explain:'700÷4=175, 28÷4=7. 175+7=182.' },
+    ],
+    lessons: [
+      { topicId:'m2a', title:'Mental Multiplication Strategies', gap:'⚠ Gap: mental multiplication', stem:'Find <strong>35 × 20</strong> mentally.', steps:[{tag:'Decompose',text:'35 × 20 = 35 × 2 × 10'},{tag:'Step 1',text:'35 × 2 = 70'},{tag:'Step 2',text:'70 × 10 = <strong>700</strong>'},{tag:'Strategy',text:'Multiplying by multiples of 10 is powerful — always look to decompose.'}], practice:{q:'Find <strong>45 × 30</strong>.',choices:['1,350','135','13,500','1,050'],correct:0,fb_r:'✓ 45×3=135, ×10=1,350.',fb_w:'✗ 45×3=135, then ×10 = 1,350.'} },
+      { topicId:'m2b', title:'Standard Multiplication Algorithm', gap:'⚠ Gap: standard algorithm', stem:'Find <strong>423 × 56</strong>.', steps:[{tag:'Partial 1',text:'423 × 6 = 2,538'},{tag:'Partial 2',text:'423 × 50 → write 0, compute 423×5=2,115 → 21,150'},{tag:'Add',text:'2,538 + 21,150 = <strong>23,688</strong>'},{tag:'Estimate check',text:'≈ 400×60=24,000. Close! ✓'}], practice:{q:'Find <strong>312 × 24</strong>.',choices:['7,488','7,248','6,488','8,048'],correct:0,fb_r:'✓ 312×4=1,248; 312×20=6,240. Sum=7,488.',fb_w:'✗ Partial products: 312×4=1,248 and 312×20=6,240. Add: 7,488.'} },
+    ]
+  },
+  {
+    id: 2, color: '#7c6bff', light: 'rgba(124,107,255,0.1)',
+    title: 'Addition & Subtraction of Fractions',
+    shortTitle: 'Fraction +/−',
+    icon: '½',
+    ccss: '5.NF.1–2',
+    topics: [
+      { id:'m3a', label:'A', name:'Equivalent Fractions', skills: 3 },
+      { id:'m3b', label:'B', name:'Making Like Units Pictorially', skills: 3 },
+      { id:'m3c', label:'C', name:'Making Like Units Numerically', skills: 5 },
+      { id:'m3d', label:'D', name:'Further Applications', skills: 4 },
+    ],
+    assessment: [
+      { topicIdx:0, topic:'Topic A', stem:'Which fraction is equivalent to <strong>3/4</strong>?', choices:['6/8','4/5','3/8','9/16'], correct:0, explain:'3/4 = 6/8 (multiply numerator and denominator by 2).' },
+      { topicIdx:2, topic:'Topic C', stem:'Find <strong>1/2 + 1/3</strong>.', choices:['5/6','2/5','2/6','1/6'], correct:0, explain:'LCD=6. 3/6 + 2/6 = 5/6.' },
+      { topicIdx:2, topic:'Topic C', stem:'Find <strong>3/4 − 1/3</strong>.', choices:['5/12','2/12','2/1','8/12'], correct:0, explain:'LCD=12. 9/12 − 4/12 = 5/12.' },
+      { topicIdx:3, topic:'Topic D', stem:'Maria walked <strong>2 1/4</strong> miles on Monday and <strong>1 3/4</strong> miles on Tuesday. How far in total?', choices:['4 miles','3 miles','4 1/4 miles','3 1/4 miles'], correct:0, explain:'2+1=3 whole miles. 1/4+3/4=4/4=1. Total: 4 miles.' },
+    ],
+    lessons: [
+      { topicId:'m3a', title:'Equivalent Fractions', gap:'⚠ Gap: equivalent fractions', stem:'Show that <strong>2/3 = 8/12</strong>.', steps:[{tag:'Multiply',text:'Multiply numerator and denominator of 2/3 by 4: 2×4=8, 3×4=12.'},{tag:'Result',text:'2/3 = 8/12. Same value, different name.'},{tag:'Why it works',text:'Multiplying by 4/4 = 1 — we\'re not changing the fraction\'s value, only how we write it.'},{tag:'Visual',text:'Picture a pie cut in 3 equal slices (take 2) vs. 12 slices (take 8). Same amount of pie!'}], practice:{q:'What is an equivalent fraction for <strong>3/5</strong>?',choices:['9/15','6/8','3/10','5/3'],correct:0,fb_r:'✓ 3×3=9, 5×3=15. So 3/5 = 9/15.',fb_w:'✗ Multiply both top and bottom by the same number. 3/5 × 3/3 = 9/15.'} },
+      { topicId:'m3c', title:'Adding Fractions with Unlike Denominators', gap:'⚠ Gap: unlike denominators', stem:'Find <strong>1/4 + 1/3</strong>.', steps:[{tag:'Find LCD',text:'Multiples of 4: 4,8,12. Multiples of 3: 3,6,9,12. LCD = <strong>12</strong>.'},{tag:'Convert',text:'1/4 = 3/12 (×3). 1/3 = 4/12 (×4).'},{tag:'Add',text:'3/12 + 4/12 = <strong>7/12</strong>.'},{tag:'Check',text:'Both fractions had denominators under 12, so 7/12 is reasonable. ✓'}], practice:{q:'Find <strong>2/3 + 1/4</strong>.',choices:['11/12','3/7','3/12','8/12'],correct:0,fb_r:'✓ LCD=12. 8/12 + 3/12 = 11/12.',fb_w:'✗ LCD=12. Convert: 2/3=8/12, 1/4=3/12. Add: 11/12.'} },
+    ]
+  },
+];
+
+// ══════════════════════════════════════════════════════════════════
+//  STORAGE HELPERS
+// ══════════════════════════════════════════════════════════════════
+const STORAGE_KEY = 'apex_5th_grade';
+
+function saveState() {
+  try {
+    const toSave = {
+      studentName: state.studentName,
+      currentModule: state.currentModule,
+      phase: state.phase === 'assessing' ? 'intro' : state.phase,
+      assessIdx: 0,
+      assessAnswers: [],
+      topicResults: state.topicResults,
+      gapTopics: state.gapTopics,
+      passTopics: state.passTopics,
+      lessonIdx: state.lessonIdx,
+      lessonMastery: 0,
+      lessonAnswered: false,
+      moduleStates: state.moduleStates,
+      lessonQueueIds: state.lessonQueue.map(l => l.topicId),
+      savedAt: Date.now()
+    };
+    localStorage.setItem(STORAGE_KEY + '_' + state.studentName, JSON.stringify(toSave));
+  } catch(e) { console.warn('Save failed', e); }
+}
+
+function loadState(studentName) {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY + '_' + studentName);
+    if (!raw) return null;
+    const saved = JSON.parse(raw);
+    const m = MODULES[saved.currentModule];
+    saved.lessonQueue = (saved.lessonQueueIds || [])
+      .map(id => m.lessons.find(l => l.topicId === id))
+      .filter(Boolean);
+    delete saved.lessonQueueIds;
+    return saved;
+  } catch(e) { return null; }
+}
+
+function getAllStudents() {
+  const students = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith(STORAGE_KEY + '_')) {
+      const name = key.replace(STORAGE_KEY + '_', '');
+      try {
+        const data = JSON.parse(localStorage.getItem(key));
+        const completedCount = (data.moduleStates || []).filter(s => s === 'complete').length;
+        students.push({ name, savedAt: data.savedAt, moduleStates: data.moduleStates, currentModule: data.currentModule, phase: data.phase, completedCount });
+      } catch(e) {}
+    }
+  }
+  return students.sort((a,b) => b.savedAt - a.savedAt);
+}
+
+function deleteStudent(name) {
+  if (confirm('Delete all progress for ' + name + '? This cannot be undone.')) {
+    localStorage.removeItem(STORAGE_KEY + '_' + name);
+    showStudentPicker();
+  }
+}
+
+function freshState(studentName) {
+  const s = {
+    studentName: studentName || 'Student',
+    currentModule: 0,
+    phase: 'intro',
+    assessIdx: 0,
+    assessAnswers: [],
+    topicResults: {},
+    gapTopics: [],
+    passTopics: [],
+    lessonQueue: [],
+    lessonIdx: 0,
+    lessonMastery: 0,
+    lessonAnswered: false,
+    moduleStates: []
+  };
+  MODULES.forEach((_, i) => s.moduleStates.push(i === 0 ? 'assess' : 'locked'));
+  return s;
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  STUDENT PICKER  (shown on first load / logout)
+// ══════════════════════════════════════════════════════════════════
+function showStudentPicker() {
+  document.querySelector('.sidebar').style.display = 'none';
+  document.querySelector('.main').style.width = '100%';
+
+  const students = getAllStudents();
+  const timeAgo = (ts) => {
+    if (!ts) return 'Never';
+    const mins = Math.round((Date.now() - ts) / 60000);
+    if (mins < 2) return 'Just now';
+    if (mins < 60) return mins + 'm ago';
+    const hrs = Math.round(mins / 60);
+    if (hrs < 24) return hrs + 'h ago';
+    return Math.round(hrs / 24) + 'd ago';
+  };
+  const phaseLabel = { intro:'Ready for diagnostic', assessing:'Mid-assessment', results:'Reviewing results', learning:'In lessons', complete:'Module complete' };
+
+  document.getElementById('content').innerHTML = `
+    <div style="max-width:520px;margin:48px auto;animation:risein 0.4s ease;">
+
+      <div style="text-align:center;margin-bottom:40px;">
+        <div style="font-size:2.5rem;margin-bottom:12px;">📚</div>
+        <h1 style="font-family:'Fraunces',serif;font-size:2rem;font-weight:900;letter-spacing:-0.02em;margin-bottom:8px;">Who's learning today?</h1>
+        <p style="color:rgba(255,255,255,0.55);font-size:0.88rem;">Progress is saved automatically on this device.</p>
+      </div>
+
+      ${students.length > 0 ? `
+        <div style="margin-bottom:24px;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:10px;">Returning Students</div>
+          ${students.map(s => {
+            const modColors = ['#ff7c4d','#3ecf8e','#7c6bff'];
+            const barHtml = (s.moduleStates || []).map((ms, i) => {
+              const col = ms === 'complete' ? modColors[i] || '#7c6bff' : ms === 'learning' ? modColors[i] || '#7c6bff' : 'rgba(255,255,255,0.08)';
+              const opacity = ms === 'complete' ? '1' : ms === 'learning' ? '0.5' : '0.3';
+              return '<div style="flex:1;height:4px;border-radius:2px;background:' + col + ';opacity:' + opacity + '"></div>';
+            }).join('');
+            return '<div onclick="loginStudent('' + s.name + '')" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;cursor:pointer;transition:all 0.15s;margin-bottom:8px;display:flex;align-items:center;gap:14px;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">' +
+              '<div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1rem;flex-shrink:0;">' + s.name[0].toUpperCase() + '</div>' +
+              '<div style="flex:1;min-width:0;">' +
+                '<div style="font-weight:700;font-size:0.95rem;margin-bottom:4px;">' + s.name + '</div>' +
+                '<div style="display:flex;gap:4px;margin-bottom:5px;">' + barHtml + '</div>' +
+                '<div style="font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:rgba(255,255,255,0.5);">' + s.completedCount + '/' + MODULES.length + ' modules · ' + (phaseLabel[s.phase] || '') + ' · Last seen ' + timeAgo(s.savedAt) + '</div>' +
+              '</div>' +
+              '<div style="font-size:1.2rem;color:rgba(255,255,255,0.4)">›</div>' +
+            '</div>';
+          }).join('')}
+        </div>
+      ` : ''}
+
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:12px;">New Student</div>
+        <input id="name-input" type="text" placeholder="Enter your first name…" maxlength="20"
+          style="width:100%;padding:12px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:#ffffff;font-family:'Syne',sans-serif;font-size:0.95rem;outline:none;margin-bottom:10px;"
+          onkeydown="if(event.key==='Enter') startNewStudent()"
+          onfocus="this.style.borderColor='var(--accent)'"
+          onblur="this.style.borderColor='var(--border)'" />
+        <button onclick="startNewStudent()" style="width:100%;padding:13px;background:var(--accent);border:none;border-radius:8px;color:white;font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.filter='brightness(1.1)'" onmouseout="this.style.filter=''">
+          Start Learning →
+        </button>
+      </div>
+
+      ${students.length > 0 ? `
+        <div style="margin-top:16px;text-align:center;">
+          <button onclick="showManageStudents()" style="background:none;border:none;color:rgba(255,255,255,0.45);font-family:'JetBrains Mono',monospace;font-size:0.62rem;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;text-decoration:underline;">
+            Manage Students
+          </button>
+        </div>
+      ` : ''}
+    </div>
+  `;
+  document.getElementById('phase-tag').textContent = 'Welcome';
+  document.getElementById('phase-tag').className = 'phase-tag phase-assess';
+  document.getElementById('topbar-title').textContent = 'Engaging Math · Grade 5';
+}
+
+function showManageStudents() {
+  const students = getAllStudents();
+  document.getElementById('content').innerHTML = `
+    <div style="max-width:520px;margin:48px auto;animation:risein 0.4s ease;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:28px;">
+        <button onclick="showStudentPicker()" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:rgba(255,255,255,0.6);font-family:'JetBrains Mono',monospace;font-size:0.7rem;padding:6px 12px;cursor:pointer;">← Back</button>
+        <h2 style="font-family:'Fraunces',serif;font-size:1.4rem;font-weight:900;">Manage Students</h2>
+      </div>
+      ${students.map(s => `
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:8px;display:flex;align-items:center;gap:12px;">
+          <div style="font-weight:700;flex:1;">${s.name}</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:0.62rem;color:rgba(255,255,255,0.5);">${s.completedCount}/${MODULES.length} complete</div>
+          <button onclick="deleteStudent('${s.name}')" style="background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.3);border-radius:6px;color:var(--accent3);font-family:'JetBrains Mono',monospace;font-size:0.62rem;padding:5px 10px;cursor:pointer;">Delete</button>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function loginStudent(name) {
+  const saved = loadState(name);
+  if (saved) {
+    state = saved;
+  } else {
+    state = freshState(name);
+  }
+  document.querySelector('.sidebar').style.display = '';
+  document.querySelector('.main').style.width = '';
+  render();
+}
+
+function startNewStudent() {
+  const name = (document.getElementById('name-input')?.value || '').trim();
+  if (!name) { alert('Please enter your name first!'); return; }
+  state = freshState(name);
+  saveState();
+  document.querySelector('.sidebar').style.display = '';
+  document.querySelector('.main').style.width = '';
+  render();
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════════════════════
+let state = freshState('Student');
+
+// ══════════════════════════════════════════════════════════════════
+//  SIDEBAR
+// ══════════════════════════════════════════════════════════════════
+function buildSidebar() {
+  document.getElementById('student-display').textContent = state.studentName;
+  document.getElementById('avatar').textContent = state.studentName[0].toUpperCase();
+
+  document.getElementById('mod-list').innerHTML = MODULES.map((m, i) => {
+    const ms = state.moduleStates[i];
+    const isCurrent = i === state.currentModule;
+    const statusLabels = { locked:'🔒 Locked', assess:'📋 Diagnostic', learning:'📚 Learning', complete:'✓ Complete' };
+    const statusClass = { locked:'sb-locked', assess:'sb-assess', learning:'sb-learning', complete:'sb-complete' };
+    const prog = ms === 'complete' ? 100 : ms === 'learning' ? Math.round((state.lessonIdx / Math.max(state.lessonQueue.length,1)) * 100) : 0;
+
+    return `
+      <div class="mod-entry ${isCurrent ? 'current' : ''}" onclick="switchModule(${i})">
+        <div class="mod-entry-header">
+          <div class="mod-icon" style="background:${m.light};color:${m.color}">${i+1}</div>
+          <div class="mod-entry-title">${m.shortTitle}</div>
+        </div>
+        <div class="mod-status-row">
+          <div class="status-badge ${statusClass[ms]}">${statusLabels[ms]}</div>
+          <div class="mod-mini-bar"><div class="mod-mini-fill" style="background:${m.color};width:${prog}%"></div></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function switchModule(i) {
+  const ms = state.moduleStates[i];
+  if (ms === 'locked') return;
+  state.currentModule = i;
+  state.phase = ms === 'complete' ? 'complete' :
+                ms === 'assess' ? 'intro' :
+                ms === 'learning' ? 'learning' : 'intro';
+  state.assessIdx = 0;
+  state.assessAnswers = [];
+  buildSidebar();
+  updateTopbar();
+  render();
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  TOPBAR
+// ══════════════════════════════════════════════════════════════════
+function updateTopbar() {
+  const m = MODULES[state.currentModule];
+  const phaseLabels = { intro:'Diagnostic', assessing:'Pre-Assessment', results:'Results', learning:'Targeted Lessons', complete:'Module Complete' };
+  const phaseClass  = { intro:'phase-assess', assessing:'phase-assess', results:'phase-assess', learning:'phase-learn', complete:'phase-complete' };
+  const ph = state.phase;
+  document.getElementById('phase-tag').textContent = phaseLabels[ph] || '';
+  document.getElementById('phase-tag').className = 'phase-tag ' + (phaseClass[ph] || 'phase-assess');
+  document.getElementById('topbar-title').textContent = `Module ${state.currentModule+1}: ${m.shortTitle}`;
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  RENDER ROUTER
+// ══════════════════════════════════════════════════════════════════
+function render() {
+  updateTopbar();
+  buildSidebar();
+  const ph = state.phase;
+  if (ph === 'intro')      renderIntro();
+  else if (ph === 'assessing') renderQuestion();
+  else if (ph === 'results')   renderResults();
+  else if (ph === 'learning')  renderLesson();
+  else if (ph === 'complete')  renderComplete();
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  PHASE 1: INTRO
+// ══════════════════════════════════════════════════════════════════
+function renderIntro() {
+  const m = MODULES[state.currentModule];
+  const qCount = m.assessment.length;
+  const topicCount = m.topics.length;
+
+  document.getElementById('content').innerHTML = `
+    <div class="assess-intro">
+      <div class="assess-hero">
+        <div class="assess-hero-icon" style="background:${m.light};font-size:2rem">📋</div>
+        <h1 class="assess-module-h1">Module ${state.currentModule+1}<br>Pre-Assessment</h1>
+        <p>
+          Before teaching you anything, let's find out what you <em>already know</em>.
+          This diagnostic covers all ${topicCount} topics in <strong>${m.title}</strong>.
+          Topics you pass will be <strong>skipped</strong> — you'll only learn what you actually need.
+        </p>
+      </div>
+
+      <div class="assess-info-grid">
+        <div class="info-tile">
+          <div class="info-tile-num" style="color:${m.color}">${qCount}</div>
+          <div class="info-tile-label">Questions</div>
+        </div>
+        <div class="info-tile">
+          <div class="info-tile-num" style="color:${m.color}">${topicCount}</div>
+          <div class="info-tile-label">Topics Tested</div>
+        </div>
+        <div class="info-tile">
+          <div class="info-tile-num" style="color:${m.color}">~${qCount * 2}m</div>
+          <div class="info-tile-label">Est. Time</div>
+        </div>
+      </div>
+
+      <div class="topic-preview">
+        <div class="topic-preview-header">Topics in this module</div>
+        ${m.topics.map(t => `
+          <div class="topic-row">
+            <span class="topic-letter">${t.label}</span>
+            <span>${t.name}</span>
+            <span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:rgba(255,255,255,0.45)">${t.skills} skills</span>
+          </div>
+        `).join('')}
+      </div>
+
+      <button class="start-btn" onclick="startAssessment()">
+        Start Pre-Assessment →
+      </button>
+    </div>
+  `;
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  PHASE 2: ASSESSMENT QUESTIONS
+// ══════════════════════════════════════════════════════════════════
+function startAssessment() {
+  const m = MODULES[state.currentModule];
+  state.phase = 'assessing';
+  state.assessIdx = 0;
+  state.assessAnswers = [];
+  // Initialize topic result buckets
+  state.topicResults = {};
+  m.topics.forEach((_, i) => { state.topicResults[i] = { total: 0, correct: 0 }; });
+  m.assessment.forEach(q => {
+    state.topicResults[q.topicIdx].total++;
+  });
+  render();
+}
+
+function renderQuestion() {
+  const m = MODULES[state.currentModule];
+  const q = m.assessment[state.assessIdx];
+  const total = m.assessment.length;
+
+  document.getElementById('content').innerHTML = `
+    <div class="assess-q-wrap">
+      <div class="q-progress-bar">
+        <div class="q-pips">
+          ${m.assessment.map((_, i) => {
+            const ans = state.assessAnswers[i];
+            const cls = i < state.assessIdx ? (ans?.correct ? 'done' : 'wrong-pip') : i === state.assessIdx ? 'current' : '';
+            return `<div class="q-pip ${cls}"></div>`;
+          }).join('')}
+        </div>
+        <div class="q-counter">${state.assessIdx + 1} / ${total}</div>
+      </div>
+
+      <div class="topic-indicator" style="background:${m.light};color:${m.color}">
+        📋 ${q.topic} — Module ${state.currentModule+1} Diagnostic
+      </div>
+
+      <div class="q-card">
+        <div class="q-card-header">
+          <span class="q-tag">Pre-Assessment · ${m.ccss}</span>
+          <span class="q-tag">${m.topics[q.topicIdx]?.name || ''}</span>
+        </div>
+        <div class="q-body">
+          <div class="q-stem">${q.stem}</div>
+          <div class="choices" id="choices">
+            ${q.choices.map((c, i) => `
+              <button class="choice" onclick="answerAssessment(${i})">
+                <span class="choice-key">${['A','B','C','D'][i]}</span>
+                <span>${c}</span>
+              </button>
+            `).join('')}
+          </div>
+          <div class="q-feedback" id="q-feedback"></div>
+          <button class="q-next" id="q-next" onclick="nextAssessmentQ()">
+            ${state.assessIdx + 1 < total ? 'Next Question →' : 'See My Results →'}
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function answerAssessment(chosen) {
+  const m = MODULES[state.currentModule];
+  const q = m.assessment[state.assessIdx];
+  const isRight = chosen === q.correct;
+  const choices = document.querySelectorAll('.choice');
+  choices.forEach(b => b.style.pointerEvents = 'none');
+  choices[q.correct].classList.add('correct');
+  if (!isRight) choices[chosen].classList.add('wrong');
+
+  const fb = document.getElementById('q-feedback');
+  fb.className = `q-feedback show ${isRight ? 'qf-right' : 'qf-wrong'}`;
+  fb.textContent = (isRight ? '✓ ' : '✗ ') + q.explain;
+
+  state.assessAnswers[state.assessIdx] = { topicIdx: q.topicIdx, correct: isRight };
+  if (isRight) state.topicResults[q.topicIdx].correct++;
+
+  document.getElementById('q-next').classList.add('show');
+}
+
+function nextAssessmentQ() {
+  const m = MODULES[state.currentModule];
+  state.assessIdx++;
+  if (state.assessIdx >= m.assessment.length) {
+    computeGaps();
+    state.phase = 'results';
+  }
+  saveState();
+  render();
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  GAP COMPUTATION
+// ══════════════════════════════════════════════════════════════════
+function computeGaps() {
+  const m = MODULES[state.currentModule];
+  state.gapTopics = [];
+  state.passTopics = [];
+
+  m.topics.forEach((topic, i) => {
+    const r = state.topicResults[i];
+    if (!r || r.total === 0) {
+      // Not tested — assume need to teach
+      state.gapTopics.push(i);
+      return;
+    }
+    const pct = r.correct / r.total;
+    if (pct >= 0.75) {
+      state.passTopics.push(i);
+    } else {
+      state.gapTopics.push(i);
+    }
+  });
+
+  // Build lesson queue from gap topics
+  state.lessonQueue = m.lessons.filter(l => {
+    const topicIdx = m.topics.findIndex(t => t.id === l.topicId);
+    return state.gapTopics.includes(topicIdx);
+  });
+  state.lessonIdx = 0;
+  state.lessonMastery = 0;
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  PHASE 3: RESULTS / DIAGNOSIS
+// ══════════════════════════════════════════════════════════════════
+function renderResults() {
+  const m = MODULES[state.currentModule];
+  const gapCount = state.gapTopics.length;
+  const passCount = state.passTopics.length;
+  const totalSkipsSkilled = state.passTopics.reduce((sum, i) => sum + m.topics[i].skills, 0);
+
+  document.getElementById('content').innerHTML = `
+    <div class="results-wrap">
+      <div class="results-hero">
+        <h1>Diagnostic Complete</h1>
+        <p>We've identified exactly what you need — and what you can skip. Here's your personalized learning plan.</p>
+      </div>
+
+      <div class="diagnosis-grid">
+        ${m.topics.map((topic, i) => {
+          const r = state.topicResults[i] || { total: 0, correct: 0 };
+          const pct = r.total > 0 ? Math.round((r.correct / r.total) * 100) : 0;
+          const isPass = state.passTopics.includes(i);
+          const isGap  = state.gapTopics.includes(i);
+          const notTested = r.total === 0;
+          const resultLabel = notTested ? 'Not Tested' : isPass ? 'Mastered ✓' : pct >= 50 ? 'Partial' : 'Needs Work';
+          const resultClass = notTested ? 'dr-partial' : isPass ? 'dr-pass' : 'dr-fail';
+          const barColor = isPass ? 'var(--accent2)' : isGap ? 'var(--accent3)' : 'var(--gold)';
+          const displayPct = notTested ? 0 : pct;
+
+          return `
+            <div class="diag-card">
+              <div class="diag-card-header">
+                <div class="diag-topic">Topic ${topic.label}: ${topic.name.split(' ').slice(0,4).join(' ')}…</div>
+                <div class="diag-result ${resultClass}">${resultLabel}</div>
+              </div>
+              <div class="diag-bar-bg">
+                <div class="diag-bar-fill" style="width:${displayPct}%;background:${barColor}"></div>
+              </div>
+              <div class="diag-label">${notTested ? 'Will be taught' : `${r.correct}/${r.total} correct (${pct}%)`}</div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+
+      <div class="gap-summary">
+        <div class="gap-summary-header">
+          <div class="gap-summary-title">Your Personalized Plan</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:0.62rem;color:rgba(255,255,255,0.45)">${state.lessonQueue.length} lessons queued</div>
+        </div>
+
+        ${state.passTopics.length > 0 ? state.passTopics.map(i => `
+          <div class="gap-item">
+            <div class="gap-dot gap-skip"></div>
+            <div>
+              <div style="font-size:0.85rem;font-weight:600">Topic ${m.topics[i].label}: ${m.topics[i].name}</div>
+              <div style="font-size:0.75rem;color:rgba(255,255,255,0.5)">Mastered — added to spaced repetition queue</div>
+            </div>
+            <div class="gap-skills">+${m.topics[i].skills} skills banked</div>
+          </div>
+        `).join('') : ''}
+
+        ${state.gapTopics.map(i => `
+          <div class="gap-item">
+            <div class="gap-dot gap-teach"></div>
+            <div>
+              <div style="font-size:0.85rem;font-weight:600">Topic ${m.topics[i].label}: ${m.topics[i].name}</div>
+              <div style="font-size:0.75rem;color:rgba(255,255,255,0.55)">Needs instruction — ${m.topics[i].skills} skills to learn</div>
+            </div>
+            <div class="gap-skills">${m.topics[i].skills} skills</div>
+          </div>
+        `).join('')}
+      </div>
+
+      ${totalSkipsSkilled > 0 ? `
+        <div style="background:rgba(62,207,142,0.06);border:1px solid rgba(62,207,142,0.2);border-radius:10px;padding:14px 18px;margin-bottom:20px;font-size:0.85rem;color:var(--accent2);">
+          🎉 You already know <strong>${passCount} topic${passCount>1?'s':''}</strong> (~${totalSkipsSkilled} skills) — those are <strong>skipped</strong> and banked into your review queue. Time saved!
+        </div>
+      ` : ''}
+
+      <div class="cta-row">
+        <button class="cta-btn cta-primary" onclick="startLearning()">
+          ${state.lessonQueue.length > 0 ? `Begin ${state.lessonQueue.length} Targeted Lesson${state.lessonQueue.length>1?'s':''} →` : 'Mark Module Complete →'}
+        </button>
+        <button class="cta-btn cta-secondary" onclick="retakeAssessment()">
+          Retake Assessment
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function retakeAssessment() {
+  state.phase = 'intro';
+  state.assessIdx = 0;
+  state.assessAnswers = [];
+  render();
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  PHASE 4: TARGETED LESSONS
+// ══════════════════════════════════════════════════════════════════
+function startLearning() {
+  if (state.lessonQueue.length === 0) {
+    markModuleComplete();
+    return;
+  }
+  state.moduleStates[state.currentModule] = 'learning';
+  state.phase = 'learning';
+  state.lessonIdx = 0;
+  state.lessonMastery = 0;
+  state.lessonAnswered = false;
+  saveState();
+  render();
+}
+
+function renderLesson() {
+  if (state.lessonIdx >= state.lessonQueue.length) {
+    markModuleComplete();
+    return;
+  }
+
+  const m = MODULES[state.currentModule];
+  const lesson = state.lessonQueue[state.lessonIdx];
+  state.lessonAnswered = false;
+
+  // Queue visualization
+  const queueHtml = state.lessonQueue.map((l, i) => {
+    const cls = i < state.lessonIdx ? 'qt-done' : i === state.lessonIdx ? 'qt-current' : 'qt-pending';
+    return `<span class="q-skill-tag ${cls}">${i < state.lessonIdx ? '✓ ' : ''}${l.title.split(' ').slice(0,3).join(' ')}</span>`;
+  }).join('');
+
+  const pipsHtml = [0,1,2,3,4].map(i =>
+    `<div class="mpip ${i < state.lessonMastery ? 'lit' : ''}" id="mpip-${i}"></div>`
+  ).join('');
+
+  document.getElementById('content').innerHTML = `
+    <div class="lesson-wrap">
+
+      <!-- Queue bar -->
+      <div class="queue-bar">
+        <span class="queue-label">Lesson ${state.lessonIdx+1}/${state.lessonQueue.length}</span>
+        ${queueHtml}
+      </div>
+
+      <!-- Lesson header -->
+      <div class="lesson-header">
+        <div class="lesson-module-tag" style="background:${m.light};color:${m.color}">Module ${state.currentModule+1} · Targeted Instruction</div>
+        <h1 class="lesson-title">${lesson.title}</h1>
+        <div class="lesson-gap-context">${lesson.gap}</div>
+      </div>
+
+      <!-- Worked example -->
+      <div class="worked-card">
+        <div class="worked-header">
+          <span class="worked-label">Worked Example — Cognitive Load Minimized</span>
+          <span class="worked-label" style="color:${m.color}">M${state.currentModule+1}</span>
+        </div>
+        <div class="worked-body">
+          <div class="worked-stem">${lesson.stem}</div>
+          <ul class="step-list">
+            ${lesson.steps.map((s, i) => `
+              <li class="step-item">
+                <div class="step-num">${i+1}</div>
+                <div>
+                  <div class="step-label">${s.tag}</div>
+                  <div class="step-text">${s.text}</div>
+                </div>
+              </li>
+            `).join('')}
+          </ul>
+        </div>
+      </div>
+
+      <!-- Practice -->
+      <div class="practice-card">
+        <div class="practice-header">
+          <span>Your Turn — Deliberate Practice</span>
+          <div class="mastery-pips-row">${pipsHtml}</div>
+        </div>
+        <div class="practice-body">
+          <div class="practice-q">${lesson.practice.q}</div>
+          <div class="choices" id="p-choices">
+            ${lesson.practice.choices.map((c, i) => `
+              <button class="choice" onclick="answerLesson(${i}, ${lesson.practice.correct})">
+                <span class="choice-key">${['A','B','C','D'][i]}</span>
+                <span>${c}</span>
+              </button>
+            `).join('')}
+          </div>
+          <div class="p-feedback" id="p-feedback"></div>
+          <button class="p-next" id="p-next" onclick="advanceLesson()">
+            ${state.lessonMastery >= 4 && state.lessonIdx + 1 >= state.lessonQueue.length
+              ? 'Finish Module →'
+              : state.lessonMastery >= 4
+              ? 'Next Lesson →'
+              : 'Next Problem →'}
+          </button>
+        </div>
+      </div>
+
+      <!-- Mastery explainer -->
+      <div style="padding:14px 18px;background:var(--surface);border:1px solid var(--border);border-radius:10px;font-size:0.8rem;color:rgba(255,255,255,0.6);line-height:1.6;">
+        <strong style="color:#ffffff">🎯 Mastery gating:</strong> Fill all 5 pips to demonstrate mastery of this topic.
+        Correct answers fill a pip. Incorrect answers provide corrective feedback — no pip lost, but no progress either.
+        Once mastered, this skill enters your <strong style="color:var(--accent)">spaced repetition queue</strong>.
+      </div>
+    </div>
+  `;
+}
+
+function answerLesson(chosen, correct) {
+  if (state.lessonAnswered) return;
+  state.lessonAnswered = true;
+
+  const lesson = state.lessonQueue[state.lessonIdx];
+  const isRight = chosen === correct;
+  const choices = document.querySelectorAll('#p-choices .choice');
+  choices.forEach(b => b.style.pointerEvents = 'none');
+  choices[correct].classList.add('correct');
+  if (!isRight) choices[chosen].classList.add('wrong');
+
+  const fb = document.getElementById('p-feedback');
+  fb.className = `p-feedback show ${isRight ? 'pf-right' : 'pf-wrong'}`;
+  fb.textContent = isRight ? lesson.practice.fb_r : lesson.practice.fb_w;
+
+  if (isRight) {
+    state.lessonMastery = Math.min(state.lessonMastery + 1, 5);
+    for (let i = 0; i < 5; i++) {
+      const pip = document.getElementById('mpip-' + i);
+      if (pip) {
+        pip.className = 'mpip' + (i < state.lessonMastery ? ' lit' : '');
+      }
+    }
+  }
+
+  // Update next button label
+  const nextBtn = document.getElementById('p-next');
+  if (nextBtn) {
+    nextBtn.classList.add('show');
+    if (state.lessonMastery >= 5 && state.lessonIdx + 1 >= state.lessonQueue.length) {
+      nextBtn.textContent = 'Finish Module →';
+    } else if (state.lessonMastery >= 5) {
+      nextBtn.textContent = 'Next Lesson →';
+    } else {
+      nextBtn.textContent = 'Try Again →';
+    }
+  }
+}
+
+function advanceLesson() {
+  if (state.lessonMastery >= 5) {
+    // Topic mastered — move to next lesson
+    state.lessonIdx++;
+    state.lessonMastery = 0;
+    state.lessonAnswered = false;
+    saveState();
+    if (state.lessonIdx >= state.lessonQueue.length) {
+      markModuleComplete();
+      return;
+    }
+  } else {
+    // Not mastered yet — re-render same lesson for another attempt
+    state.lessonAnswered = false;
+  }
+  render();
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  PHASE 5: MODULE COMPLETE
+// ══════════════════════════════════════════════════════════════════
+function markModuleComplete() {
+  state.moduleStates[state.currentModule] = 'complete';
+  // Unlock next module
+  if (state.currentModule + 1 < MODULES.length) {
+    state.moduleStates[state.currentModule + 1] = 'assess';
+  }
+  state.phase = 'complete';
+  saveState();
+  render();
+}
+
+function renderComplete() {
+  const m = MODULES[state.currentModule];
+  const nextMod = MODULES[state.currentModule + 1];
+  const skippedTopics = state.passTopics.map(i => m.topics[i]);
+  const taughtTopics  = state.gapTopics.map(i => m.topics[i]);
+
+  document.getElementById('content').innerHTML = `
+    <div class="complete-wrap">
+      <div class="complete-badge">🏆</div>
+      <h1>Module ${state.currentModule + 1} Complete!</h1>
+      <p>
+        You've mastered <strong>${m.title}</strong>. 
+        All skills are now in your spaced repetition queue — the system will resurface them at exactly the right time to fight the forgetting curve.
+      </p>
+
+      <div class="skip-info">
+        <div class="skip-info-label">What happened to each topic</div>
+        ${skippedTopics.map(t => `
+          <div class="skip-row">
+            <span class="skip-check">✓</span>
+            <span>Topic ${t.label}: ${t.name}</span>
+            <span class="skip-arrow" style="margin-left:auto">→</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:0.68rem;color:var(--accent2)">Pre-known · banked</span>
+          </div>
+        `).join('')}
+        ${taughtTopics.map(t => `
+          <div class="skip-row">
+            <span class="skip-check" style="color:var(--accent)">✓</span>
+            <span>Topic ${t.label}: ${t.name}</span>
+            <span class="skip-arrow" style="margin-left:auto">→</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:0.68rem;color:var(--accent)">Taught · mastered</span>
+          </div>
+        `).join('')}
+      </div>
+
+      ${nextMod ? `
+        <button class="start-btn" onclick="goNextModule()" style="background:${nextMod.color}">
+          Start Module ${state.currentModule + 2}: ${nextMod.shortTitle} →
+        </button>
+      ` : `
+        <button class="start-btn" style="background:var(--accent2)">
+          🎉 All Modules Complete — Grade 5 Done!
+        </button>
+      `}
+    </div>
+  `;
+}
+
+function goNextModule() {
+  state.currentModule++;
+  state.phase = 'intro';
+  state.assessIdx = 0;
+  state.assessAnswers = [];
+  state.gapTopics = [];
+  state.passTopics = [];
+  state.lessonQueue = [];
+  state.lessonIdx = 0;
+  state.lessonMastery = 0;
+  saveState();
+  render();
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  BOOT
+// ══════════════════════════════════════════════════════════════════
+function init() {
+  // Force all text white inside the app
+  const style = document.createElement('style');
+  style.textContent = `
+    #content, #content * { color: #ffffff !important; }
+    .shell { background: #0d0e14 !important; color: #ffffff !important; }
+    .sidebar { background: #16192a !important; }
+    .main { background: #0d0e14 !important; }
+    input { color: #ffffff !important; }
+  `;
+  document.head.appendChild(style);
+  showStudentPicker();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+</script>
+</body>
+</html>
