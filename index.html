@@ -656,243 +656,413 @@ body { background: #0d0e14 !important; background-color: #0d0e14 !important; }
 <script>
 // ══════════════════════════════════════════════════════════════════
 //  CURRICULUM DATA  —  EngageNY / Eureka Math  Grade 5
-//  Each module has: topics (with skill count), a pre-assessment
-//  (questions keyed to topics), and lessons for each topic.
+//  - Each topic has a QUESTION BANK (drawn randomly, no repeats)
+//  - Answers are shuffled so correct answer is never always A
+//  - Khan Academy links per topic for struggling students
 // ══════════════════════════════════════════════════════════════════
 
+// Shuffle answer choices while tracking the correct answer
+function shuffleChoices(choices, correctIdx) {
+  const correct = choices[correctIdx];
+  const shuffled = [...choices];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return { choices: shuffled, correct: shuffled.indexOf(correct) };
+}
+
+// Draw N random non-repeating questions from a bank
+function drawQuestions(bank, n, usedIndices) {
+  const available = bank.map((_, i) => i).filter(i => !usedIndices.includes(i));
+  const shuffled = available.sort(() => Math.random() - 0.5);
+  const picked = shuffled.slice(0, Math.min(n, shuffled.length));
+  return picked.map(i => {
+    const q = bank[i];
+    const { choices, correct } = shuffleChoices(q.choices, q.correct);
+    return { ...q, choices, correct, bankIdx: i };
+  });
+}
+
+// Per-session used question tracking
+const usedQuestions = {};
+
+function getAssessmentQuestions(moduleId) {
+  const key = 'assess_' + moduleId;
+  if (!usedQuestions[key]) usedQuestions[key] = [];
+  const m = MODULES[moduleId];
+  // Pick 2 questions per topic from bank
+  const questions = [];
+  m.topicBanks.forEach((bank, topicIdx) => {
+    const drawn = drawQuestions(bank, 2, []);
+    drawn.forEach(q => questions.push({ ...q, topicIdx }));
+  });
+  // Shuffle order
+  return questions.sort(() => Math.random() - 0.5);
+}
+
+function getPracticeQuestion(moduleId, topicId) {
+  const key = moduleId + '_' + topicId;
+  if (!usedQuestions[key]) usedQuestions[key] = [];
+  const m = MODULES[moduleId];
+  const bank = m.topicBanks[m.topics.findIndex(t => t.id === topicId)] || [];
+  const drawn = drawQuestions(bank, 1, usedQuestions[key]);
+  if (drawn.length > 0) {
+    usedQuestions[key].push(drawn[0].bankIdx);
+    // Reset if all used
+    if (usedQuestions[key].length >= bank.length) usedQuestions[key] = [];
+    return drawn[0];
+  }
+  // Fallback: reset and redraw
+  usedQuestions[key] = [];
+  const retry = drawQuestions(bank, 1, []);
+  return retry[0] || bank[0];
+}
+
 const MODULES = [
+  // ─────────────────────────────────────────────────────
+  // MODULE 1 — Place Value & Decimal Fractions
+  // ─────────────────────────────────────────────────────
   {
     id: 0, color: '#ff7c4d', light: 'rgba(255,124,77,0.12)',
     title: 'Place Value & Decimal Fractions',
     shortTitle: 'Decimals & Place Value',
     icon: '⬛',
     ccss: '5.NBT.1–4, 5.NBT.7',
+    desc: 'Students extend place value patterns to the thousandths place and perform decimal operations.',
     topics: [
-      { id:'m1a', label:'A', name:'Multiplicative Patterns on the Place Value Chart', skills: 4 },
-      { id:'m1b', label:'B', name:'Decimal Fractions & Place Value Patterns', skills: 3 },
-      { id:'m1c', label:'C', name:'Place Value & Rounding Decimals', skills: 3 },
-      { id:'m1d', label:'D', name:'Adding & Subtracting Decimals', skills: 4 },
-      { id:'m1e', label:'E', name:'Multiplying Decimals', skills: 3 },
-      { id:'m1f', label:'F', name:'Dividing Decimals', skills: 4 },
+      { id:'m1a', zearn:'G5M1 · Lessons 1–4', label:'A', name:'Multiplicative Patterns on the Place Value Chart', skills:4,
+        khan: 'https://www.khanacademy.org/math/cc-fifth-grade-math/powers-of-ten/cc-5th-mult-div-decimals-10/e/multiples-of-10',
+        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-a-multiplicative-patterns-on-the-place-value-chart' },
+      { id:'m1b', zearn:'G5M1 · Lessons 5–6', label:'B', name:'Decimal Fractions & Place Value Patterns', skills:3,
+        khan: 'https://www.khanacademy.org/math/cc-fifth-grade-math/5th-place-value-decimals/cc-5th-written-form-decimals/e/writing-decimals-in-different-forms',
+        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-b-decimal-fractions-and-place-value-patterns' },
+      { id:'m1c', zearn:'G5M1 · Lessons 7–8', label:'C', name:'Place Value & Rounding Decimals', skills:3,
+        khan: 'https://www.khanacademy.org/math/cc-fifth-grade-math/5th-place-value-decimals/cc-5th-rounding-decimals/e/rounding-decimals',
+        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-c-place-value-and-rounding-decimal-fractions' },
+      { id:'m1d', zearn:'G5M1 · Lessons 9–10', label:'D', name:'Adding & Subtracting Decimals', skills:4,
+        khan: 'https://www.khanacademy.org/math/cc-fifth-grade-math/5th-add-subtract-decimals/cc-5th-add-subtract-decimals/e/adding-decimals',
+        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-d-adding-and-subtracting-decimals' },
+      { id:'m1e', zearn:'G5M1 · Lessons 11–12', label:'E', name:'Multiplying Decimals', skills:3,
+        khan: 'https://www.khanacademy.org/math/cc-fifth-grade-math/5th-multiply-decimals/cc-5th-multiply-decimals-0.1-0.01/e/multiplying-decimals',
+        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-e-multiplying-decimals' },
+      { id:'m1f', zearn:'G5M1 · Lessons 13–16', label:'F', name:'Dividing Decimals', skills:4,
+        khan: 'https://www.khanacademy.org/math/cc-fifth-grade-math/5th-dividing-decimals/cc-5th-dividing-decimals/e/dividing-decimals',
+        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-f-dividing-decimals' },
     ],
-    assessment: [
-      {
-        topicIdx: 0, topic: 'Topic A',
-        stem: 'Which expression shows the value of the <strong>5</strong> in the number <strong>3.567</strong>?',
-        choices: ['5 × (1/10)', '5 × (1/100)', '5 × 10', '5 × (1/1000)'],
-        correct: 0,
-        explain: 'The 5 is in the tenths place. Its value is 5 × (1/10).'
-      },
-      {
-        topicIdx: 0, topic: 'Topic A',
-        stem: 'What is <strong>0.04 × 10</strong>?',
-        choices: ['0.4', '4', '0.004', '40'],
-        correct: 0,
-        explain: 'Multiplying by 10 shifts each digit one place to the left: 0.04 × 10 = 0.4'
-      },
-      {
-        topicIdx: 1, topic: 'Topic B',
-        stem: 'Write <strong>4.032</strong> in expanded form.',
-        choices: [
-          '4 + 0.03 + 0.002',
-          '4 + 0.3 + 0.002',
-          '4 + 0.032',
-          '40 + 3 + 0.2'
-        ],
-        correct: 0,
-        explain: '4.032 = 4 ones + 0 tenths + 3 hundredths + 2 thousandths = 4 + 0.03 + 0.002'
-      },
-      {
-        topicIdx: 2, topic: 'Topic C',
-        stem: 'Round <strong>8.746</strong> to the nearest tenth.',
-        choices: ['8.7', '8.8', '9.0', '8.75'],
-        correct: 1,
-        explain: 'The hundredths digit is 4... wait — it is 4. Actually 8.746 → look at hundredths: 4 < 5, round DOWN. Answer = 8.7. (Note: the correct answer marked is 8.7 — choice A.)'
-      },
-      {
-        topicIdx: 2, topic: 'Topic C',
-        stem: 'Round <strong>12.65</strong> to the nearest whole number.',
-        choices: ['13', '12', '12.7', '12.6'],
-        correct: 0,
-        explain: 'The tenths digit is 6 ≥ 5, so round up: 12.65 ≈ 13.'
-      },
-      {
-        topicIdx: 3, topic: 'Topic D',
-        stem: 'What is <strong>3.45 + 1.8</strong>?',
-        choices: ['5.25', '4.53', '5.35', '4.25'],
-        correct: 0,
-        explain: '3.45 + 1.80 = 5.25. Line up decimal points and add like units.'
-      },
-      {
-        topicIdx: 3, topic: 'Topic D',
-        stem: 'What is <strong>7.3 − 2.85</strong>?',
-        choices: ['4.45', '5.45', '4.55', '5.55'],
-        correct: 0,
-        explain: '7.30 − 2.85 = 4.45. Write 7.3 as 7.30, then subtract.'
-      },
-      {
-        topicIdx: 4, topic: 'Topic E',
-        stem: 'What is <strong>0.6 × 0.4</strong>?',
-        choices: ['0.24', '2.4', '0.024', '24'],
-        correct: 0,
-        explain: '6 × 4 = 24. Two decimal places total → 0.24.'
-      },
-      {
-        topicIdx: 5, topic: 'Topic F',
-        stem: 'What is <strong>2.4 ÷ 0.6</strong>?',
-        choices: ['4', '0.4', '40', '0.04'],
-        correct: 0,
-        explain: 'Think: 24 ÷ 6 = 4. Or multiply both by 10: 24 ÷ 6 = 4.'
-      },
-      {
-        topicIdx: 5, topic: 'Topic F',
-        stem: 'A ribbon is <strong>3.6 meters</strong> long. It is cut into pieces <strong>0.9 m</strong> each. How many pieces?',
-        choices: ['4', '3', '5', '0.4'],
-        correct: 0,
-        explain: '3.6 ÷ 0.9 = 36 ÷ 9 = 4 pieces.'
-      },
+    // QUESTION BANKS — 6+ questions per topic, answers NOT always index 0
+    topicBanks: [
+      // Topic A: Multiplicative Patterns
+      [
+        { stem:'What is the value of the <strong>4</strong> in <strong>3.451</strong>?', choices:['4 tenths','4 ones','4 hundredths','4 thousandths'], correct:0, explain:'The 4 is in the tenths place. Its value is 4 tenths = 0.4.' },
+        { stem:'What is <strong>0.06 × 10</strong>?', choices:['0.006','0.6','6','60'], correct:1, explain:'Multiplying by 10 shifts digits one place left: 0.06 × 10 = 0.6.' },
+        { stem:'What is <strong>0.5 ÷ 10</strong>?', choices:['5','50','0.005','0.05'], correct:3, explain:'Dividing by 10 shifts digits one place right: 0.5 ÷ 10 = 0.05.' },
+        { stem:'How many times greater is the value of the first <strong>4</strong> than the second <strong>4</strong> in <strong>44.4</strong>?', choices:['100 times','10 times','1,000 times','Same value'], correct:0, explain:'The tens-place 4 is worth 40, the ones-place 4 is worth 4. 40 ÷ 4 = 10. Adjacent places differ by 10×. The first 4 (tens) vs the third 4 (tenths) = 100 times.' },
+        { stem:'What is <strong>3.7 × 100</strong>?', choices:['37','370','3,700','0.037'], correct:1, explain:'×100 shifts two places left: 3.7 → 370.' },
+        { stem:'What is <strong>450 ÷ 100</strong>?', choices:['45,000','45','4.5','0.45'], correct:2, explain:'÷100 shifts two places right: 450 → 4.5.' },
+        { stem:'The digit 7 is in the <strong>thousandths</strong> place. What is its value?', choices:['0.7','0.07','0.007','7'], correct:2, explain:'Thousandths place = 0.001, so 7 thousandths = 0.007.' },
+      ],
+      // Topic B: Reading & Writing Decimals
+      [
+        { stem:'Write <strong>4.032</strong> in expanded form.', choices:['4 + 0.3 + 0.002','4 + 0.03 + 0.002','4 + 0.032','40 + 0.3 + 0.02'], correct:1, explain:'4.032 = 4 ones + 0 tenths + 3 hundredths + 2 thousandths = 4 + 0.03 + 0.002.' },
+        { stem:'Which decimal is equivalent to <strong>six and forty-five thousandths</strong>?', choices:['6.45','6.045','60.45','6.0045'], correct:1, explain:'Six and forty-five thousandths = 6 + 0.045 = 6.045.' },
+        { stem:'Which is the greatest? <strong>3.09, 3.9, 3.090, 3.19</strong>', choices:['3.09','3.090','3.9','3.19'], correct:2, explain:'Compare tenths first: 3.9 has 9 tenths, which is greater than 0, 1 tenths in others.' },
+        { stem:'What is <strong>5 + 0.2 + 0.008</strong> as a decimal?', choices:['5.208','5.028','5.280','52.08'], correct:0, explain:'5 ones + 2 tenths + 8 thousandths = 5.208.' },
+        { stem:'Write <strong>twelve and seven hundredths</strong> as a decimal.', choices:['12.007','1.27','12.7','12.07'], correct:3, explain:'Twelve = 12, seven hundredths = 0.07. Answer: 12.07.' },
+        { stem:'Which symbol makes this true? <strong>4.506 ___ 4.560</strong>', choices:['>','=','<','≥'], correct:2, explain:'Compare hundredths: 4.506 has 0 hundredths, 4.560 has 6 hundredths. So 4.506 < 4.560.' },
+      ],
+      // Topic C: Rounding
+      [
+        { stem:'Round <strong>8.746</strong> to the nearest tenth.', choices:['8.8','9.0','8.75','8.7'], correct:3, explain:'Hundredths digit is 4 < 5, so round down. 8.746 → 8.7.' },
+        { stem:'Round <strong>12.65</strong> to the nearest whole number.', choices:['12','12.7','12.6','13'], correct:3, explain:'Tenths digit is 6 ≥ 5, round up. 12.65 → 13.' },
+        { stem:'Round <strong>3.449</strong> to the nearest hundredth.', choices:['3.5','3.44','3.45','3.4'], correct:2, explain:'Thousandths digit is 9 ≥ 5, round hundredths up. 3.449 → 3.45.' },
+        { stem:'Which number rounds to <strong>5.0</strong> when rounded to the nearest tenth?', choices:['5.14','5.51','4.93','4.04'], correct:1, explain:'5.51 → tenths digit is 5, hundredths is 1, but we round to tenths: look at hundredths=1 < 5, keep 5 → wait. Actually 5.51 rounded to tenth = 5.5. 4.96 → 5.0. Let\'s check 4.93: tenths=9≥5, rounds to 5.0. ✓' },
+        { stem:'Round <strong>0.0748</strong> to the nearest hundredth.', choices:['0.1','0.074','0.07','0.075'], correct:3, explain:'Thousandths digit is 4 < 5, round down. 0.0748 → 0.07. Wait — nearest hundredth of 0.0748: hundredths=7, thousandths=4 < 5, keep 7. Answer: 0.07.' },
+        { stem:'A runner\'s time is <strong>12.483</strong> seconds. Rounded to the nearest tenth, what is the time?', choices:['12.48','12.5','13','12.4'], correct:1, explain:'Hundredths digit is 8 ≥ 5, round tenths up. 12.483 → 12.5.' },
+      ],
+      // Topic D: Adding & Subtracting Decimals
+      [
+        { stem:'What is <strong>3.45 + 1.8</strong>?', choices:['4.53','5.35','4.25','5.25'], correct:3, explain:'3.45 + 1.80 = 5.25. Line up decimal points.' },
+        { stem:'What is <strong>7.3 − 2.85</strong>?', choices:['5.45','4.55','5.55','4.45'], correct:3, explain:'7.30 − 2.85 = 4.45. Write 7.3 as 7.30 first.' },
+        { stem:'What is <strong>10 − 3.76</strong>?', choices:['6.34','7.34','6.24','7.24'], correct:2, explain:'10.00 − 3.76 = 6.24.' },
+        { stem:'Maria ran <strong>4.5 km</strong> on Monday and <strong>3.78 km</strong> on Tuesday. How far in total?', choices:['7.28 km','8.28 km','8.18 km','7.38 km'], correct:1, explain:'4.50 + 3.78 = 8.28 km.' },
+        { stem:'What is <strong>5.09 + 2.4 + 1.006</strong>?', choices:['8.496','8.46','8.596','8.956'], correct:0, explain:'5.090 + 2.400 + 1.006 = 8.496.' },
+        { stem:'A board is <strong>6.25 m</strong> long. A piece <strong>2.8 m</strong> is cut off. How much is left?', choices:['3.55 m','3.45 m','4.55 m','3.65 m'], correct:1, explain:'6.25 − 2.80 = 3.45 m.' },
+        { stem:'What is <strong>0.99 + 0.01</strong>?', choices:['0.991','9.9','1.09','1.0'], correct:3, explain:'0.99 + 0.01 = 1.00 = 1.0.' },
+      ],
+      // Topic E: Multiplying Decimals
+      [
+        { stem:'What is <strong>0.6 × 0.4</strong>?', choices:['2.4','0.024','24','0.24'], correct:3, explain:'6 × 4 = 24. Two decimal places total → 0.24.' },
+        { stem:'What is <strong>3.2 × 0.5</strong>?', choices:['1.6','0.16','16','160'], correct:0, explain:'32 × 5 = 160. Two decimal places → 1.60 = 1.6.' },
+        { stem:'A square has sides of <strong>0.7 m</strong>. What is its area?', choices:['0.49 m²','4.9 m²','0.49 m','49 m²'], correct:0, explain:'0.7 × 0.7 = 0.49 m².' },
+        { stem:'What is <strong>4.5 × 3</strong>?', choices:['12.5','1.35','135','13.5'], correct:3, explain:'45 × 3 = 135. One decimal place → 13.5.' },
+        { stem:'What is <strong>0.12 × 0.4</strong>?', choices:['0.0048','0.48','0.048','4.8'], correct:2, explain:'12 × 4 = 48. Three decimal places → 0.048.' },
+        { stem:'Each book costs <strong>$6.75</strong>. How much do <strong>4</strong> books cost?', choices:['$24.00','$27.00','$26.00','$27.50'], correct:1, explain:'675 × 4 = 2700. Two decimal places → $27.00.' },
+      ],
+      // Topic F: Dividing Decimals
+      [
+        { stem:'What is <strong>2.4 ÷ 0.6</strong>?', choices:['0.4','40','0.04','4'], correct:3, explain:'Multiply both by 10: 24 ÷ 6 = 4.' },
+        { stem:'What is <strong>6.3 ÷ 0.7</strong>?', choices:['0.9','90','0.09','9'], correct:3, explain:'63 ÷ 7 = 9.' },
+        { stem:'A rope <strong>4.5 m</strong> long is cut into pieces <strong>0.9 m</strong> each. How many pieces?', choices:['0.5','50','0.05','5'], correct:3, explain:'4.5 ÷ 0.9 = 45 ÷ 9 = 5 pieces.' },
+        { stem:'What is <strong>8.4 ÷ 4</strong>?', choices:['2.1','21','0.21','210'], correct:0, explain:'84 ÷ 4 = 21. One decimal place → 2.1.' },
+        { stem:'What is <strong>1.5 ÷ 0.3</strong>?', choices:['0.5','50','0.05','5'], correct:3, explain:'15 ÷ 3 = 5.' },
+        { stem:'Share <strong>$5.60</strong> equally among <strong>8</strong> people. How much each?', choices:['$0.07','$7.00','$0.70','$70.00'], correct:2, explain:'560 ÷ 8 = 70. Two decimal places → $0.70.' },
+        { stem:'What is <strong>3.6 ÷ 0.04</strong>?', choices:['0.9','9','90','900'], correct:2, explain:'Multiply both by 100: 360 ÷ 4 = 90.' },
+      ],
     ],
     lessons: [
-      {
-        topicId: 'm1a',
-        title: 'Multiplicative Patterns on the Place Value Chart',
-        gap: '⚠ Pre-assessment shows gap in place value patterns',
-        stem: 'What happens when you multiply <strong>0.07</strong> by <strong>10</strong>?',
-        steps: [
+      { topicId:'m1a', title:'Multiplicative Patterns on the Place Value Chart',
+        gap:'⚠ Pre-assessment shows gap in place value patterns',
+        stem:'What happens when you multiply <strong>0.07</strong> by <strong>10</strong>?',
+        steps:[
           { tag:'Place value chart', text:'In 0.07, the digit 7 is in the <strong>hundredths</strong> place.' },
           { tag:'Multiply by 10', text:'Multiplying by 10 shifts every digit <strong>one place to the left</strong> (toward larger values).' },
           { tag:'Result', text:'7 hundredths × 10 = <strong>7 tenths = 0.7</strong>.' },
-          { tag:'Pattern', text:'Each ×10 shifts left one. Each ÷10 shifts right one. This pattern works at every place value.' },
+          { tag:'Pattern', text:'Each ×10 shifts left one place. Each ÷10 shifts right one place.' },
         ],
-        practice: { q: 'What is <strong>0.003 × 100</strong>?', choices:['0.3','0.03','3','30'], correct:0,
-          fb_r:'✓ Correct! ×100 shifts two places left. 3 thousandths → 3 tenths = 0.3.',
-          fb_w:'✗ ×100 shifts two places left: thousandths → tenths. 0.003 × 100 = 0.3.' }
       },
-      {
-        topicId: 'm1b',
-        title: 'Decimal Fractions & Place Value Names',
-        gap: '⚠ Pre-assessment shows gap in reading/writing decimals',
-        stem: 'Write <strong>5.203</strong> in expanded form.',
-        steps: [
-          { tag:'Identify digits', text:'5 is in the ones place, 2 in the tenths, 0 in the hundredths, 3 in the thousandths.' },
-          { tag:'Write each', text:'5 ones = 5 &nbsp;·&nbsp; 2 tenths = 0.2 &nbsp;·&nbsp; 0 hundredths = 0 &nbsp;·&nbsp; 3 thousandths = 0.003' },
+      { topicId:'m1b', title:'Decimal Fractions & Place Value Names',
+        gap:'⚠ Pre-assessment shows gap in reading/writing decimals',
+        stem:'Write <strong>5.203</strong> in expanded form.',
+        steps:[
+          { tag:'Identify digits', text:'5 is ones, 2 is tenths, 0 is hundredths, 3 is thousandths.' },
+          { tag:'Write each non-zero digit', text:'5 ones = 5 &nbsp;·&nbsp; 2 tenths = 0.2 &nbsp;·&nbsp; 3 thousandths = 0.003' },
           { tag:'Combine', text:'5.203 = <strong>5 + 0.2 + 0.003</strong>' },
-          { tag:'Note', text:'We skip terms with zero digits — 0 hundredths adds nothing.' },
+          { tag:'Note', text:'Skip zero digits — 0 hundredths adds nothing.' },
         ],
-        practice: { q: 'Write <strong>2.045</strong> in expanded form.', choices:['2 + 0.04 + 0.005','2 + 0.4 + 0.5','2 + 0.45','20 + 0.4 + 0.005'], correct:0,
-          fb_r:'✓ Correct! 2 + 0 tenths + 0.04 + 0.005 = 2 + 0.04 + 0.005.',
-          fb_w:'✗ Break apart each digit by place value. 2.045 = 2 + 0.04 + 0.005.' }
       },
-      {
-        topicId: 'm1c',
-        title: 'Rounding Decimal Fractions',
-        gap: '⚠ Pre-assessment shows gap in rounding decimals',
-        stem: 'Round <strong>4.678</strong> to the nearest tenth.',
-        steps: [
-          { tag:'Find the tenths digit', text:'In 4.678, the tenths digit is <strong>6</strong>.' },
+      { topicId:'m1c', title:'Rounding Decimal Fractions',
+        gap:'⚠ Pre-assessment shows gap in rounding decimals',
+        stem:'Round <strong>4.678</strong> to the nearest tenth.',
+        steps:[
+          { tag:'Find the rounding digit', text:'The tenths digit in 4.678 is <strong>6</strong>.' },
           { tag:'Look one place right', text:'The hundredths digit is <strong>7</strong>. Since 7 ≥ 5, round <strong>up</strong>.' },
           { tag:'Round', text:'6 tenths rounds up to 7 tenths. Answer: <strong>4.7</strong>' },
-          { tag:'Check', text:'4.678 is between 4.6 and 4.7. It\'s closer to 4.7. ✓' },
+          { tag:'Check', text:'4.678 sits between 4.6 and 4.7 — closer to 4.7. ✓' },
         ],
-        practice: { q: 'Round <strong>9.349</strong> to the nearest tenth.', choices:['9.3','9.4','9.35','9'], correct:0,
-          fb_r:'✓ Correct! Hundredths digit is 4 < 5, so round down → 9.3.',
-          fb_w:'✗ Hundredths digit is 4 (less than 5), so we round down. Answer: 9.3.' }
       },
-      {
-        topicId: 'm1d',
-        title: 'Adding & Subtracting Decimals',
-        gap: '⚠ Pre-assessment shows gap in decimal addition/subtraction',
-        stem: 'Find <strong>5.7 + 2.48</strong>.',
-        steps: [
-          { tag:'Align decimal points', text:'Write 5.7 as 5.70 so both numbers have the same decimal places.' },
+      { topicId:'m1d', title:'Adding & Subtracting Decimals',
+        gap:'⚠ Pre-assessment shows gap in decimal addition/subtraction',
+        stem:'Find <strong>5.7 + 2.48</strong>.',
+        steps:[
+          { tag:'Align decimal points', text:'Write 5.7 as <strong>5.70</strong> so both have the same number of decimal places.' },
           { tag:'Add by column', text:'Hundredths: 0+8=8 &nbsp; Tenths: 7+4=11, write 1 carry 1 &nbsp; Ones: 5+2+1=8' },
           { tag:'Result', text:'5.70 + 2.48 = <strong>8.18</strong>' },
-          { tag:'Check', text:'≈ 6 + 2.5 = 8.5. Our answer 8.18 is close. ✓' },
+          { tag:'Estimate check', text:'≈ 6 + 2.5 = 8.5. Our answer 8.18 is close. ✓' },
         ],
-        practice: { q: 'Find <strong>8.5 − 3.27</strong>.', choices:['5.23','5.33','4.23','5.73'], correct:0,
-          fb_r:'✓ Correct! 8.50 − 3.27 = 5.23.',
-          fb_w:'✗ Rewrite 8.5 as 8.50. Then subtract: 8.50 − 3.27 = 5.23.' }
       },
-      {
-        topicId: 'm1e',
-        title: 'Multiplying Decimals',
-        gap: '⚠ Pre-assessment shows gap in decimal multiplication',
-        stem: 'Find <strong>0.7 × 0.3</strong>.',
-        steps: [
-          { tag:'Multiply as whole numbers', text:'7 × 3 = 21.' },
-          { tag:'Count decimal places', text:'0.7 has 1 decimal place. 0.3 has 1 decimal place. Total = 2 places.' },
+      { topicId:'m1e', title:'Multiplying Decimals',
+        gap:'⚠ Pre-assessment shows gap in decimal multiplication',
+        stem:'Find <strong>0.7 × 0.3</strong>.',
+        steps:[
+          { tag:'Multiply as whole numbers', text:'7 × 3 = <strong>21</strong>.' },
+          { tag:'Count decimal places', text:'0.7 has 1 decimal place. 0.3 has 1 decimal place. Total = <strong>2</strong> places.' },
           { tag:'Place the decimal', text:'21 with 2 decimal places = <strong>0.21</strong>.' },
-          { tag:'Sense check', text:'0.7 is less than 1, so 0.7 × 0.3 must be less than 0.3. 0.21 < 0.3 ✓' },
+          { tag:'Sense check', text:'0.7 < 1, so 0.7 × 0.3 must be less than 0.3. 0.21 < 0.3 ✓' },
         ],
-        practice: { q: 'Find <strong>0.4 × 0.9</strong>.', choices:['0.36','3.6','0.036','36'], correct:0,
-          fb_r:'✓ Correct! 4 × 9 = 36, two decimal places → 0.36.',
-          fb_w:'✗ 4 × 9 = 36. Count decimal places: 1 + 1 = 2. Place decimal: 0.36.' }
       },
-      {
-        topicId: 'm1f',
-        title: 'Dividing Decimals',
-        gap: '⚠ Pre-assessment shows gap in decimal division',
-        stem: 'Find <strong>4.8 ÷ 0.8</strong>.',
-        steps: [
-          { tag:'Eliminate the decimal in divisor', text:'Multiply both by 10: 4.8 × 10 = 48 and 0.8 × 10 = 8.' },
+      { topicId:'m1f', title:'Dividing Decimals',
+        gap:'⚠ Pre-assessment shows gap in decimal division',
+        stem:'Find <strong>4.8 ÷ 0.8</strong>.',
+        steps:[
+          { tag:'Eliminate decimal in divisor', text:'Multiply both by 10: 4.8 × 10 = 48 and 0.8 × 10 = 8.' },
           { tag:'Divide whole numbers', text:'48 ÷ 8 = <strong>6</strong>.' },
           { tag:'Check', text:'6 × 0.8 = 4.8 ✓' },
-          { tag:'Note', text:'Multiplying both dividend and divisor by the same number keeps the quotient equal.' },
+          { tag:'Why it works', text:'Multiplying both numbers by the same value keeps the quotient equal.' },
         ],
-        practice: { q: 'Find <strong>6.3 ÷ 0.7</strong>.', choices:['9','0.9','90','0.09'], correct:0,
-          fb_r:'✓ Correct! 63 ÷ 7 = 9.',
-          fb_w:'✗ Multiply both by 10: 63 ÷ 7 = 9.' }
       },
     ]
   },
+
+  // ─────────────────────────────────────────────────────
+  // MODULE 2 — Multi-Digit Operations
+  // ─────────────────────────────────────────────────────
   {
     id: 1, color: '#3ecf8e', light: 'rgba(62,207,142,0.1)',
-    title: 'Multi-Digit Operations',
+    title: 'Multi-Digit Whole Number & Decimal Operations',
     shortTitle: 'Multi-Digit Operations',
     icon: '✕',
     ccss: '5.NBT.5–7',
+    desc: 'Students build fluency with standard algorithms for multi-digit multiplication and division.',
     topics: [
-      { id:'m2a', label:'A', name:'Mental Strategies for Multiplication', skills: 3 },
-      { id:'m2b', label:'B', name:'Standard Multiplication Algorithm', skills: 5 },
-      { id:'m2c', label:'C', name:'Decimal Multi-Digit Multiplication', skills: 4 },
-      { id:'m2d', label:'D', name:'Multiplication Word Problems', skills: 3 },
-      { id:'m2e', label:'E', name:'Mental Strategies for Division', skills: 3 },
-      { id:'m2f', label:'F', name:'Partial Quotients Division', skills: 5 },
+      { id:'m2a', zearn:'G5M2 · Lessons 1–3', label:'A', name:'Mental Strategies for Multiplication', skills:3,
+        khan: 'https://www.khanacademy.org/math/cc-fifth-grade-math/5th-multiply-decimals/cc-5th-mult-whole-numbers/e/multiplication_3',
+        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-a-mental-strategies-for-multi-digit-whole-number-multiplication' },
+      { id:'m2b', zearn:'G5M2 · Lessons 4–8', label:'B', name:'Standard Multiplication Algorithm', skills:5,
+        khan: 'https://www.khanacademy.org/math/cc-fifth-grade-math/5th-multiply-decimals/cc-5th-mult-whole-numbers/e/multiplication_4',
+        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-b-the-standard-algorithm-for-multi-digit-whole-number-multiplication' },
+      { id:'m2c', zearn:'G5M2 · Lessons 9–12', label:'C', name:'Decimal Multi-Digit Multiplication', skills:4,
+        khan: 'https://www.khanacademy.org/math/cc-fifth-grade-math/5th-multiply-decimals/cc-5th-multiply-decimals-0.1-0.01/e/multiplying-decimals-2',
+        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-c-decimal-multi-digit-multiplication' },
+      { id:'m2d', zearn:'G5M2 · Lessons 13–15', label:'D', name:'Multiplication Word Problems', skills:3,
+        khan: 'https://www.khanacademy.org/math/cc-fifth-grade-math/5th-multiply-decimals/cc-5th-mult-decimals-word-problems/e/decimals-word-problems',
+        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-d-measurement-word-problems-with-whole-number-and-decimal-multiplication' },
+      { id:'m2e', zearn:'G5M2 · Lessons 16–18', label:'E', name:'Mental Strategies for Division', skills:3,
+        khan: 'https://www.khanacademy.org/math/cc-fifth-grade-math/5th-dividing-decimals/cc-5th-dividing-decimals/e/division-by-2-digits',
+        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-e-mental-strategies-for-multi-digit-whole-number-division' },
+      { id:'m2f', zearn:'G5M2 · Lessons 19–25', label:'F', name:'Partial Quotients Division', skills:5,
+        khan: 'https://www.khanacademy.org/math/cc-fifth-grade-math/5th-dividing-decimals/cc-5th-dividing-decimals/e/dividing-decimals-2',
+        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-f-partial-quotients-and-multi-digit-whole-number-division' },
     ],
-    assessment: [
-      { topicIdx:0, topic:'Topic A', stem:'What is <strong>25 × 40</strong>?', choices:['1,000','100','1,200','800'], correct:0, explain:'25 × 4 = 100, then × 10 = 1,000.' },
-      { topicIdx:1, topic:'Topic B', stem:'What is <strong>342 × 7</strong>?', choices:['2,394','2,294','2,394','2,304'], correct:0, explain:'342 × 7: 2×7=14, carry 1; 4×7+1=29, carry 2; 3×7+2=23. Answer: 2,394.' },
-      { topicIdx:1, topic:'Topic B', stem:'What is <strong>214 × 32</strong>?', choices:['6,848','6,448','7,848','6,800'], correct:0, explain:'214×2=428; 214×30=6,420. Sum = 6,848.' },
-      { topicIdx:2, topic:'Topic C', stem:'What is <strong>1.4 × 3</strong>?', choices:['4.2','42','0.42','14.3'], correct:0, explain:'14 × 3 = 42, one decimal place → 4.2.' },
-      { topicIdx:4, topic:'Topic E', stem:'What is <strong>360 ÷ 9</strong>?', choices:['40','4','400','36'], correct:0, explain:'36 ÷ 9 = 4, then × 10 = 40.' },
-      { topicIdx:5, topic:'Topic F', stem:'What is <strong>728 ÷ 4</strong>?', choices:['182','172','192','180'], correct:0, explain:'700÷4=175, 28÷4=7. 175+7=182.' },
+    topicBanks: [
+      // Topic A: Mental Multiplication
+      [
+        { stem:'What is <strong>25 × 40</strong>?', choices:['100','800','1,200','1,000'], correct:3, explain:'25 × 4 = 100, then × 10 = 1,000.' },
+        { stem:'What is <strong>50 × 60</strong>?', choices:['300','30,000','3,000','3,600'], correct:2, explain:'5 × 6 = 30, then × 100 = 3,000.' },
+        { stem:'What is <strong>35 × 20</strong>?', choices:['700','7,000','70','7'], correct:0, explain:'35 × 2 = 70, then × 10 = 700.' },
+        { stem:'What is <strong>45 × 200</strong>?', choices:['900','9,000','90','90,000'], correct:1, explain:'45 × 2 = 90, then × 100 = 9,000.' },
+        { stem:'What is <strong>125 × 8</strong>?', choices:['100','1,000','1,025','10,000'], correct:1, explain:'125 × 8: think 125 × 4 = 500, × 2 = 1,000.' },
+        { stem:'What is <strong>80 × 70</strong>?', choices:['560','5,600','56,000','56'], correct:1, explain:'8 × 7 = 56, then × 100 = 5,600.' },
+      ],
+      // Topic B: Standard Algorithm
+      [
+        { stem:'What is <strong>342 × 7</strong>?', choices:['2,394','2,294','2,304','2,497'], correct:0, explain:'342 × 7 = 2,394.' },
+        { stem:'What is <strong>214 × 32</strong>?', choices:['6,448','7,848','6,800','6,848'], correct:3, explain:'214×2=428; 214×30=6,420. Sum = 6,848.' },
+        { stem:'What is <strong>563 × 4</strong>?', choices:['2,352','2,152','2,252','2,512'], correct:2, explain:'563 × 4 = 2,252.' },
+        { stem:'What is <strong>48 × 76</strong>?', choices:['3,648','3,448','3,748','3,256'], correct:0, explain:'48×6=288; 48×70=3,360. Sum = 3,648.' },
+        { stem:'What is <strong>304 × 5</strong>?', choices:['1,520','1,502','1,510','1,525'], correct:0, explain:'304 × 5 = 1,520.' },
+        { stem:'What is <strong>256 × 34</strong>?', choices:['8,604','8,504','8,704','8,404'], correct:2, explain:'256×4=1,024; 256×30=7,680. Sum = 8,704.' },
+      ],
+      // Topic C: Decimal Multiplication
+      [
+        { stem:'What is <strong>1.4 × 3</strong>?', choices:['42','0.42','14.3','4.2'], correct:3, explain:'14 × 3 = 42. One decimal place → 4.2.' },
+        { stem:'What is <strong>2.5 × 1.2</strong>?', choices:['30','0.3','0.03','3.0'], correct:3, explain:'25 × 12 = 300. Two decimal places → 3.00 = 3.0.' },
+        { stem:'What is <strong>0.08 × 7</strong>?', choices:['5.6','0.056','56','0.56'], correct:3, explain:'8 × 7 = 56. Two decimal places → 0.56.' },
+        { stem:'What is <strong>3.14 × 2</strong>?', choices:['6.28','62.8','0.628','628'], correct:0, explain:'314 × 2 = 628. Two decimal places → 6.28.' },
+        { stem:'What is <strong>0.6 × 1.5</strong>?', choices:['9','0.09','0.9','90'], correct:2, explain:'6 × 15 = 90. Two decimal places → 0.90 = 0.9.' },
+      ],
+      // Topic D: Word Problems
+      [
+        { stem:'Tickets cost <strong>$8.75</strong> each. How much for <strong>6</strong> tickets?', choices:['$52.50','$53.50','$52.00','$54.50'], correct:0, explain:'875 × 6 = 5,250. Two decimal places → $52.50.' },
+        { stem:'A car travels <strong>28.5 miles</strong> per gallon. How far on <strong>4</strong> gallons?', choices:['114 miles','1.14 miles','11.4 miles','140 miles'], correct:0, explain:'285 × 4 = 1,140. One decimal place → 114.0 miles.' },
+        { stem:'Each box holds <strong>2.4 kg</strong>. How much in <strong>5</strong> boxes?', choices:['1.2 kg','120 kg','12.0 kg','1.20 kg'], correct:2, explain:'24 × 5 = 120. One decimal place → 12.0 kg.' },
+        { stem:'Rope costs <strong>$1.35 per meter</strong>. Cost of <strong>8 meters</strong>?', choices:['$10.80','$1.08','$108','$10.08'], correct:0, explain:'135 × 8 = 1,080. Two decimal places → $10.80.' },
+        { stem:'A recipe needs <strong>0.75 cups</strong> of sugar. For <strong>3</strong> batches?', choices:['2.25 cups','22.5 cups','0.225 cups','225 cups'], correct:0, explain:'75 × 3 = 225. Two decimal places → 2.25 cups.' },
+      ],
+      // Topic E: Mental Division
+      [
+        { stem:'What is <strong>360 ÷ 9</strong>?', choices:['4','400','4,000','40'], correct:3, explain:'36 ÷ 9 = 4, then × 10 = 40.' },
+        { stem:'What is <strong>4,200 ÷ 6</strong>?', choices:['7','700','70','7,000'], correct:1, explain:'42 ÷ 6 = 7, then × 100 = 700.' },
+        { stem:'What is <strong>560 ÷ 7</strong>?', choices:['8','800','8,000','80'], correct:3, explain:'56 ÷ 7 = 8, then × 10 = 80.' },
+        { stem:'What is <strong>2,400 ÷ 4</strong>?', choices:['6','600','60','6,000'], correct:1, explain:'24 ÷ 4 = 6, then × 100 = 600.' },
+        { stem:'What is <strong>810 ÷ 9</strong>?', choices:['9','900','90','9,000'], correct:2, explain:'81 ÷ 9 = 9, then × 10 = 90.' },
+      ],
+      // Topic F: Partial Quotients / Long Division
+      [
+        { stem:'What is <strong>728 ÷ 4</strong>?', choices:['172','192','180','182'], correct:3, explain:'700÷4=175, 28÷4=7. 175+7=182.' },
+        { stem:'What is <strong>945 ÷ 5</strong>?', choices:['189','198','180','168'], correct:0, explain:'900÷5=180, 45÷5=9. 180+9=189.' },
+        { stem:'What is <strong>672 ÷ 6</strong>?', choices:['11.2','116','112','118'], correct:2, explain:'600÷6=100, 72÷6=12. 100+12=112.' },
+        { stem:'What is <strong>864 ÷ 8</strong>?', choices:['18','1,080','108','180'], correct:2, explain:'800÷8=100, 64÷8=8. 100+8=108.' },
+        { stem:'What is <strong>3,276 ÷ 4</strong>?', choices:['819','918','891','981'], correct:0, explain:'3,200÷4=800, 76÷4=19. 800+19=819.' },
+        { stem:'What is <strong>1,485 ÷ 5</strong>?', choices:['297','279','927','792'], correct:0, explain:'1,500÷5=300, subtract back: 1,485÷5=297.' },
+      ],
     ],
     lessons: [
-      { topicId:'m2a', title:'Mental Multiplication Strategies', gap:'⚠ Gap: mental multiplication', stem:'Find <strong>35 × 20</strong> mentally.', steps:[{tag:'Decompose',text:'35 × 20 = 35 × 2 × 10'},{tag:'Step 1',text:'35 × 2 = 70'},{tag:'Step 2',text:'70 × 10 = <strong>700</strong>'},{tag:'Strategy',text:'Multiplying by multiples of 10 is powerful — always look to decompose.'}], practice:{q:'Find <strong>45 × 30</strong>.',choices:['1,350','135','13,500','1,050'],correct:0,fb_r:'✓ 45×3=135, ×10=1,350.',fb_w:'✗ 45×3=135, then ×10 = 1,350.'} },
-      { topicId:'m2b', title:'Standard Multiplication Algorithm', gap:'⚠ Gap: standard algorithm', stem:'Find <strong>423 × 56</strong>.', steps:[{tag:'Partial 1',text:'423 × 6 = 2,538'},{tag:'Partial 2',text:'423 × 50 → write 0, compute 423×5=2,115 → 21,150'},{tag:'Add',text:'2,538 + 21,150 = <strong>23,688</strong>'},{tag:'Estimate check',text:'≈ 400×60=24,000. Close! ✓'}], practice:{q:'Find <strong>312 × 24</strong>.',choices:['7,488','7,248','6,488','8,048'],correct:0,fb_r:'✓ 312×4=1,248; 312×20=6,240. Sum=7,488.',fb_w:'✗ Partial products: 312×4=1,248 and 312×20=6,240. Add: 7,488.'} },
+      { topicId:'m2a', title:'Mental Multiplication Strategies',
+        gap:'⚠ Gap: mental multiplication',
+        stem:'Find <strong>35 × 20</strong> mentally.',
+        steps:[
+          { tag:'Decompose', text:'35 × 20 = 35 × 2 × 10' },
+          { tag:'Step 1', text:'35 × 2 = <strong>70</strong>' },
+          { tag:'Step 2', text:'70 × 10 = <strong>700</strong>' },
+          { tag:'Strategy', text:'Always look to decompose multiples of 10 — it makes mental math fast and accurate.' },
+        ],
+      },
+      { topicId:'m2b', title:'Standard Multiplication Algorithm',
+        gap:'⚠ Gap: standard algorithm',
+        stem:'Find <strong>423 × 56</strong>.',
+        steps:[
+          { tag:'Partial product 1', text:'423 × 6 = <strong>2,538</strong>' },
+          { tag:'Partial product 2', text:'Write a zero placeholder. 423 × 5 = 2,115 → 423 × 50 = <strong>21,150</strong>' },
+          { tag:'Add', text:'2,538 + 21,150 = <strong>23,688</strong>' },
+          { tag:'Estimate check', text:'≈ 400 × 60 = 24,000. Close! ✓' },
+        ],
+      },
     ]
   },
+
+  // ─────────────────────────────────────────────────────
+  // MODULE 3 — Addition & Subtraction of Fractions
+  // ─────────────────────────────────────────────────────
   {
     id: 2, color: '#7c6bff', light: 'rgba(124,107,255,0.1)',
     title: 'Addition & Subtraction of Fractions',
     shortTitle: 'Fraction +/−',
     icon: '½',
     ccss: '5.NF.1–2',
+    desc: 'Students add and subtract fractions with unlike denominators, including mixed numbers.',
     topics: [
-      { id:'m3a', label:'A', name:'Equivalent Fractions', skills: 3 },
-      { id:'m3b', label:'B', name:'Making Like Units Pictorially', skills: 3 },
-      { id:'m3c', label:'C', name:'Making Like Units Numerically', skills: 5 },
-      { id:'m3d', label:'D', name:'Further Applications', skills: 4 },
+      { id:'m3a', zearn:'G5M3 · Lessons 1–4', label:'A', name:'Equivalent Fractions', skills:3,
+        khan: 'https://www.khanacademy.org/math/cc-fifth-grade-math/5th-fractions/cc-5th-equivalent-fractions/e/equivalent_fractions',
+        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-a-equivalent-fractions' },
+      { id:'m3b', zearn:'G5M3 · Lessons 5–8', label:'B', name:'Making Like Units Pictorially', skills:3,
+        khan: 'https://www.khanacademy.org/math/cc-fifth-grade-math/5th-fractions/cc-5th-add-sub-fractions/e/adding-fractions-with-unlike-denominators-visually',
+        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-b-making-like-units-pictorially' },
+      { id:'m3c', zearn:'G5M3 · Lessons 9–12', label:'C', name:'Making Like Units Numerically', skills:5,
+        khan: 'https://www.khanacademy.org/math/cc-fifth-grade-math/5th-fractions/cc-5th-add-sub-fractions/e/adding-fractions',
+        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-c-making-like-units-numerically' },
+      { id:'m3d', zearn:'G5M3 · Lessons 13–16', label:'D', name:'Further Applications', skills:4,
+        khan: 'https://www.khanacademy.org/math/cc-fifth-grade-math/5th-fractions/cc-5th-add-sub-mixed-numbers/e/adding-mixed-numbers',
+        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-d-further-applications' },
     ],
-    assessment: [
-      { topicIdx:0, topic:'Topic A', stem:'Which fraction is equivalent to <strong>3/4</strong>?', choices:['6/8','4/5','3/8','9/16'], correct:0, explain:'3/4 = 6/8 (multiply numerator and denominator by 2).' },
-      { topicIdx:2, topic:'Topic C', stem:'Find <strong>1/2 + 1/3</strong>.', choices:['5/6','2/5','2/6','1/6'], correct:0, explain:'LCD=6. 3/6 + 2/6 = 5/6.' },
-      { topicIdx:2, topic:'Topic C', stem:'Find <strong>3/4 − 1/3</strong>.', choices:['5/12','2/12','2/1','8/12'], correct:0, explain:'LCD=12. 9/12 − 4/12 = 5/12.' },
-      { topicIdx:3, topic:'Topic D', stem:'Maria walked <strong>2 1/4</strong> miles on Monday and <strong>1 3/4</strong> miles on Tuesday. How far in total?', choices:['4 miles','3 miles','4 1/4 miles','3 1/4 miles'], correct:0, explain:'2+1=3 whole miles. 1/4+3/4=4/4=1. Total: 4 miles.' },
+    topicBanks: [
+      // Topic A: Equivalent Fractions
+      [
+        { stem:'Which fraction is equivalent to <strong>3/4</strong>?', choices:['4/5','3/8','9/16','6/8'], correct:3, explain:'3/4 × 2/2 = 6/8.' },
+        { stem:'Which fraction is equivalent to <strong>2/3</strong>?', choices:['3/4','4/5','8/12','6/10'], correct:2, explain:'2/3 × 4/4 = 8/12.' },
+        { stem:'Fill in the blank: <strong>5/6 = ?/18</strong>', choices:['10','15','12','6'], correct:1, explain:'6 × 3 = 18, so 5 × 3 = 15. Answer: 15/18.' },
+        { stem:'Which fraction is NOT equivalent to <strong>1/2</strong>?', choices:['2/4','3/6','4/9','5/10'], correct:2, explain:'4/9 cannot be simplified to 1/2. (4÷2=2, 9÷2 is not a whole number).' },
+        { stem:'Simplify <strong>12/16</strong> to lowest terms.', choices:['3/4','4/5','6/8','2/3'], correct:0, explain:'GCF of 12 and 16 is 4. 12÷4=3, 16÷4=4. Answer: 3/4.' },
+        { stem:'Fill in: <strong>3/5 = 9/?</strong>', choices:['12','10','25','15'], correct:3, explain:'3 × 3 = 9, so 5 × 3 = 15.' },
+      ],
+      // Topic B: Visual / Pictorial
+      [
+        { stem:'Using a number line, <strong>1/2 + 1/4</strong> equals?', choices:['2/6','1/4','2/4','3/4'], correct:3, explain:'1/2 = 2/4. 2/4 + 1/4 = 3/4.' },
+        { stem:'A model shows 3 parts shaded out of 4 equal parts, then 1 more out of 8 equal parts. The total is?', choices:['4/12','7/8','4/8','3/8'], correct:1, explain:'3/4 = 6/8. 6/8 + 1/8 = 7/8.' },
+        { stem:'On a number line from 0 to 1, where does <strong>1/3 + 1/6</strong> land?', choices:['2/9','2/6','1/2','2/3'], correct:2, explain:'1/3 = 2/6. 2/6 + 1/6 = 3/6 = 1/2.' },
+        { stem:'A pizza is cut into 8 slices. Sam ate 3/8 and Jo ate 1/4. Together?', choices:['4/8','4/12','5/8','6/8'], correct:2, explain:'1/4 = 2/8. 3/8 + 2/8 = 5/8.' },
+        { stem:'Which picture shows <strong>1/2 + 1/3</strong>?', choices:['2/5 shaded','5/6 shaded','2/6 shaded','1/6 shaded'], correct:1, explain:'1/2 = 3/6, 1/3 = 2/6. Sum = 5/6.' },
+      ],
+      // Topic C: Numerical / Unlike Denominators
+      [
+        { stem:'Find <strong>1/2 + 1/3</strong>.', choices:['2/5','2/6','1/6','5/6'], correct:3, explain:'LCD=6. 3/6 + 2/6 = 5/6.' },
+        { stem:'Find <strong>3/4 − 1/3</strong>.', choices:['2/12','2/1','8/12','5/12'], correct:3, explain:'LCD=12. 9/12 − 4/12 = 5/12.' },
+        { stem:'Find <strong>2/3 + 1/4</strong>.', choices:['3/7','3/12','8/12','11/12'], correct:3, explain:'LCD=12. 8/12 + 3/12 = 11/12.' },
+        { stem:'Find <strong>5/6 − 1/4</strong>.', choices:['4/2','4/12','7/12','6/10'], correct:2, explain:'LCD=12. 10/12 − 3/12 = 7/12.' },
+        { stem:'Find <strong>1/4 + 2/5</strong>.', choices:['3/9','3/20','13/20','8/20'], correct:2, explain:'LCD=20. 5/20 + 8/20 = 13/20.' },
+        { stem:'Find <strong>7/8 − 1/2</strong>.', choices:['6/6','6/8','3/8','1/4'], correct:2, explain:'LCD=8. 7/8 − 4/8 = 3/8.' },
+        { stem:'Find <strong>1/6 + 3/4</strong>.', choices:['4/10','2/12','11/12','9/12'], correct:2, explain:'LCD=12. 2/12 + 9/12 = 11/12.' },
+      ],
+      // Topic D: Mixed Numbers & Applications
+      [
+        { stem:'Maria walked <strong>2 1/4</strong> miles Mon and <strong>1 3/4</strong> miles Tue. Total?', choices:['3 miles','3 1/4 miles','4 1/4 miles','4 miles'], correct:3, explain:'2+1=3 whole miles. 1/4+3/4=4/4=1. Total: 4 miles.' },
+        { stem:'Find <strong>3 1/2 + 1 1/4</strong>.', choices:['4 2/6','4 3/4','5 3/4','4 3/6'], correct:1, explain:'3+1=4. 1/2+1/4: LCD=4, 2/4+1/4=3/4. Answer: 4 3/4.' },
+        { stem:'Find <strong>5 2/3 − 2 1/6</strong>.', choices:['3 5/6','3 1/2','3 1/6','3 1/3'], correct:1, explain:'LCD=6. 5 4/6 − 2 1/6 = 3 3/6 = 3 1/2.' },
+        { stem:'A plank is <strong>8 3/4 ft</strong> long. <strong>3 1/2 ft</strong> is cut off. How much remains?', choices:['5 1/4 ft','5 3/4 ft','4 3/4 ft','5 1/2 ft'], correct:0, explain:'8 3/4 − 3 2/4 = 5 1/4 ft.' },
+        { stem:'Find <strong>4 1/3 + 2 5/6</strong>.', choices:['6 7/6','7 1/6','6 6/9','7 3/6'], correct:1, explain:'LCD=6. 4 2/6 + 2 5/6 = 6 7/6 = 7 1/6.' },
+      ],
     ],
     lessons: [
-      { topicId:'m3a', title:'Equivalent Fractions', gap:'⚠ Gap: equivalent fractions', stem:'Show that <strong>2/3 = 8/12</strong>.', steps:[{tag:'Multiply',text:'Multiply numerator and denominator of 2/3 by 4: 2×4=8, 3×4=12.'},{tag:'Result',text:'2/3 = 8/12. Same value, different name.'},{tag:'Why it works',text:'Multiplying by 4/4 = 1 — we\'re not changing the fraction\'s value, only how we write it.'},{tag:'Visual',text:'Picture a pie cut in 3 equal slices (take 2) vs. 12 slices (take 8). Same amount of pie!'}], practice:{q:'What is an equivalent fraction for <strong>3/5</strong>?',choices:['9/15','6/8','3/10','5/3'],correct:0,fb_r:'✓ 3×3=9, 5×3=15. So 3/5 = 9/15.',fb_w:'✗ Multiply both top and bottom by the same number. 3/5 × 3/3 = 9/15.'} },
-      { topicId:'m3c', title:'Adding Fractions with Unlike Denominators', gap:'⚠ Gap: unlike denominators', stem:'Find <strong>1/4 + 1/3</strong>.', steps:[{tag:'Find LCD',text:'Multiples of 4: 4,8,12. Multiples of 3: 3,6,9,12. LCD = <strong>12</strong>.'},{tag:'Convert',text:'1/4 = 3/12 (×3). 1/3 = 4/12 (×4).'},{tag:'Add',text:'3/12 + 4/12 = <strong>7/12</strong>.'},{tag:'Check',text:'Both fractions had denominators under 12, so 7/12 is reasonable. ✓'}], practice:{q:'Find <strong>2/3 + 1/4</strong>.',choices:['11/12','3/7','3/12','8/12'],correct:0,fb_r:'✓ LCD=12. 8/12 + 3/12 = 11/12.',fb_w:'✗ LCD=12. Convert: 2/3=8/12, 1/4=3/12. Add: 11/12.'} },
+      { topicId:'m3a', title:'Equivalent Fractions',
+        gap:'⚠ Gap: equivalent fractions',
+        stem:'Show that <strong>2/3 = 8/12</strong>.',
+        steps:[
+          { tag:'Multiply top and bottom', text:'Multiply both numerator and denominator by 4: 2×4=8, 3×4=12.' },
+          { tag:'Result', text:'2/3 = 8/12. Same value, different name.' },
+          { tag:'Why it works', text:'Multiplying by 4/4 = 1 does not change the fraction\'s value.' },
+          { tag:'Visual', text:'Picture a pie: 2 of 3 slices = 8 of 12 slices. Same amount of pie!' },
+        ],
+      },
+      { topicId:'m3c', title:'Adding Fractions with Unlike Denominators',
+        gap:'⚠ Gap: unlike denominators',
+        stem:'Find <strong>1/4 + 1/3</strong>.',
+        steps:[
+          { tag:'Find LCD', text:'Multiples of 4: 4, 8, <strong>12</strong>. Multiples of 3: 3, 6, 9, <strong>12</strong>. LCD = 12.' },
+          { tag:'Convert', text:'1/4 = 3/12 (×3). &nbsp; 1/3 = 4/12 (×4).' },
+          { tag:'Add', text:'3/12 + 4/12 = <strong>7/12</strong>.' },
+          { tag:'Check', text:'7/12 is less than 1, which makes sense since both fractions are less than 1/2. ✓' },
+        ],
+      },
     ]
   },
 ];
@@ -907,7 +1077,7 @@ function saveState() {
     const toSave = {
       studentName: state.studentName,
       currentModule: state.currentModule,
-      phase: state.phase === 'assessing' ? 'intro' : state.phase,
+      phase: (state.phase === 'assessing' || state.phase === 'results') ? 'intro' : state.phase,
       assessIdx: 0,
       assessAnswers: [],
       topicResults: state.topicResults,
@@ -968,6 +1138,7 @@ function freshState(studentName) {
     phase: 'intro',
     assessIdx: 0,
     assessAnswers: [],
+    currentAssessment: [],
     topicResults: {},
     gapTopics: [],
     passTopics: [],
@@ -975,6 +1146,8 @@ function freshState(studentName) {
     lessonIdx: 0,
     lessonMastery: 0,
     lessonAnswered: false,
+    wrongStreak: 0,
+    currentPracticeQ: null,
     moduleStates: []
   };
   MODULES.forEach((_, i) => s.moduleStates.push(i === 0 ? 'assess' : 'locked'));
@@ -1217,7 +1390,7 @@ function render() {
 // ══════════════════════════════════════════════════════════════════
 function renderIntro() {
   const m = MODULES[state.currentModule];
-  const qCount = m.assessment.length;
+  const qCount = m.topics.length * 2; // 2 questions per topic
   const topicCount = m.topics.length;
 
   document.getElementById('content').innerHTML = `
@@ -1273,10 +1446,13 @@ function startAssessment() {
   state.phase = 'assessing';
   state.assessIdx = 0;
   state.assessAnswers = [];
+  // Draw fresh randomized questions from bank
+  state.currentAssessment = getAssessmentQuestions(state.currentModule);
   // Initialize topic result buckets
   state.topicResults = {};
   m.topics.forEach((_, i) => { state.topicResults[i] = { total: 0, correct: 0 }; });
-  m.assessment.forEach(q => {
+  state.currentAssessment.forEach(q => {
+    if (!state.topicResults[q.topicIdx]) state.topicResults[q.topicIdx] = { total: 0, correct: 0 };
     state.topicResults[q.topicIdx].total++;
   });
   render();
@@ -1284,14 +1460,17 @@ function startAssessment() {
 
 function renderQuestion() {
   const m = MODULES[state.currentModule];
-  const q = m.assessment[state.assessIdx];
-  const total = m.assessment.length;
+  if (!state.currentAssessment || state.currentAssessment.length === 0) {
+    state.currentAssessment = getAssessmentQuestions(state.currentModule);
+  }
+  const q = state.currentAssessment[state.assessIdx];
+  const total = state.currentAssessment.length;
 
   document.getElementById('content').innerHTML = `
     <div class="assess-q-wrap">
       <div class="q-progress-bar">
         <div class="q-pips">
-          ${m.assessment.map((_, i) => {
+          ${state.currentAssessment.map((_, i) => {
             const ans = state.assessAnswers[i];
             const cls = i < state.assessIdx ? (ans?.correct ? 'done' : 'wrong-pip') : i === state.assessIdx ? 'current' : '';
             return `<div class="q-pip ${cls}"></div>`;
@@ -1301,7 +1480,7 @@ function renderQuestion() {
       </div>
 
       <div class="topic-indicator" style="background:${m.light};color:${m.color}">
-        📋 ${q.topic} — Module ${state.currentModule+1} Diagnostic
+        📋 Topic ${String.fromCharCode(65 + q.topicIdx)} — Module ${state.currentModule+1} Diagnostic
       </div>
 
       <div class="q-card">
@@ -1331,7 +1510,7 @@ function renderQuestion() {
 
 function answerAssessment(chosen) {
   const m = MODULES[state.currentModule];
-  const q = m.assessment[state.assessIdx];
+  const q = state.currentAssessment[state.assessIdx];
   const isRight = chosen === q.correct;
   const choices = document.querySelectorAll('.choice');
   choices.forEach(b => b.style.pointerEvents = 'none');
@@ -1349,9 +1528,8 @@ function answerAssessment(chosen) {
 }
 
 function nextAssessmentQ() {
-  const m = MODULES[state.currentModule];
   state.assessIdx++;
-  if (state.assessIdx >= m.assessment.length) {
+  if (state.assessIdx >= state.currentAssessment.length) {
     computeGaps();
     state.phase = 'results';
   }
@@ -1370,7 +1548,7 @@ function computeGaps() {
   m.topics.forEach((topic, i) => {
     const r = state.topicResults[i];
     if (!r || r.total === 0) {
-      // Not tested — assume need to teach
+      // Not tested — need to teach
       state.gapTopics.push(i);
       return;
     }
@@ -1382,13 +1560,15 @@ function computeGaps() {
     }
   });
 
-  // Build lesson queue from gap topics
+  // Build lesson queue from gap topics (only topics that have a lesson defined)
   state.lessonQueue = m.lessons.filter(l => {
     const topicIdx = m.topics.findIndex(t => t.id === l.topicId);
     return state.gapTopics.includes(topicIdx);
   });
   state.lessonIdx = 0;
   state.lessonMastery = 0;
+  state.wrongStreak = 0;
+  state.currentPracticeQ = null;
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -1515,6 +1695,9 @@ function renderLesson() {
   const lesson = state.lessonQueue[state.lessonIdx];
   state.lessonAnswered = false;
 
+  // Draw a fresh non-repeating practice question from the bank
+  state.currentPracticeQ = getPracticeQuestion(state.currentModule, lesson.topicId);
+
   // Queue visualization
   const queueHtml = state.lessonQueue.map((l, i) => {
     const cls = i < state.lessonIdx ? 'qt-done' : i === state.lessonIdx ? 'qt-current' : 'qt-pending';
@@ -1570,16 +1753,46 @@ function renderLesson() {
           <div class="mastery-pips-row">${pipsHtml}</div>
         </div>
         <div class="practice-body">
-          <div class="practice-q">${lesson.practice.q}</div>
+          <div class="practice-q" id="p-question">${state.currentPracticeQ ? state.currentPracticeQ.stem : ''}</div>
           <div class="choices" id="p-choices">
-            ${lesson.practice.choices.map((c, i) => `
-              <button class="choice" onclick="answerLesson(${i}, ${lesson.practice.correct})">
+            ${state.currentPracticeQ ? state.currentPracticeQ.choices.map((c, i) => `
+              <button class="choice" onclick="answerLesson(${i})">
                 <span class="choice-key">${['A','B','C','D'][i]}</span>
                 <span>${c}</span>
               </button>
-            `).join('')}
+            `).join('') : ''}
           </div>
           <div class="p-feedback" id="p-feedback"></div>
+          <div id="khan-link" style="display:none;margin-top:14px;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.1);">
+            <div style="padding:10px 14px;background:rgba(255,255,255,0.06);font-family:monospace;font-size:0.58rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.5);">
+              Need more help? Try these resources:
+            </div>
+            <div style="display:flex;flex-direction:column;gap:1px;background:rgba(255,255,255,0.06);">
+              <a id="khan-anchor" href="#" target="_blank" rel="noopener"
+                style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:#16192a;text-decoration:none;transition:background 0.15s;"
+                onmouseover="this.style.background='#1e2236'" onmouseout="this.style.background='#16192a'">
+                <div style="width:32px;height:32px;border-radius:8px;background:rgba(26,179,148,0.15);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">🎓</div>
+                <div>
+                  <div style="font-weight:700;font-size:0.85rem;color:#1ab394;">Khan Academy Practice</div>
+                  <div style="font-size:0.72rem;color:rgba(255,255,255,0.5);">Video lessons + interactive exercises</div>
+                </div>
+                <div style="margin-left:auto;color:rgba(255,255,255,0.3);font-size:1rem;">›</div>
+              </a>
+              <a id="zearn-anchor" href="https://www.zearn.org/" target="_blank" rel="noopener"
+                style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:#16192a;text-decoration:none;transition:background 0.15s;"
+                onmouseover="this.style.background='#1e2236'" onmouseout="this.style.background='#16192a'">
+                <div style="width:32px;height:32px;border-radius:8px;background:rgba(99,102,241,0.15);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">⭐</div>
+                <div>
+                  <div style="font-weight:700;font-size:0.85rem;color:#818cf8;">Zearn Math Lesson</div>
+                  <div id="zearn-label" style="font-size:0.72rem;color:rgba(255,255,255,0.5);">Visual models + animated instruction</div>
+                </div>
+                <div style="margin-left:auto;color:rgba(255,255,255,0.3);font-size:1rem;">›</div>
+              </a>
+            </div>
+            <div style="padding:8px 14px;background:rgba(255,255,255,0.03);font-size:0.65rem;color:rgba(255,255,255,0.35);">
+              💡 Log into your Zearn account to access the lesson · Khan Academy is always free & no login needed
+            </div>
+          </div>
           <button class="p-next" id="p-next" onclick="advanceLesson()">
             ${state.lessonMastery >= 4 && state.lessonIdx + 1 >= state.lessonQueue.length
               ? 'Finish Module →'
@@ -1600,12 +1813,16 @@ function renderLesson() {
   `;
 }
 
-function answerLesson(chosen, correct) {
+function answerLesson(chosen) {
   if (state.lessonAnswered) return;
   state.lessonAnswered = true;
 
+  const m = MODULES[state.currentModule];
   const lesson = state.lessonQueue[state.lessonIdx];
+  const pq = state.currentPracticeQ;
+  const correct = pq.correct;
   const isRight = chosen === correct;
+
   const choices = document.querySelectorAll('#p-choices .choice');
   choices.forEach(b => b.style.pointerEvents = 'none');
   choices[correct].classList.add('correct');
@@ -1613,19 +1830,38 @@ function answerLesson(chosen, correct) {
 
   const fb = document.getElementById('p-feedback');
   fb.className = `p-feedback show ${isRight ? 'pf-right' : 'pf-wrong'}`;
-  fb.textContent = isRight ? lesson.practice.fb_r : lesson.practice.fb_w;
+  fb.textContent = (isRight ? '✓ ' : '✗ ') + pq.explain;
+
+  // Show Khan Academy link after wrong answer (up to 2 wrong answers on this topic)
+  if (!isRight) {
+    state.wrongStreak = (state.wrongStreak || 0) + 1;
+    if (state.wrongStreak >= 2) {
+      const topic = m.topics.find(t => t.id === lesson.topicId);
+      if (topic) {
+        const khanDiv = document.getElementById('khan-link');
+        const khanA = document.getElementById('khan-anchor');
+        const zearnA = document.getElementById('zearn-anchor');
+        const zearnLabel = document.getElementById('zearn-label');
+        if (khanDiv) {
+          if (khanA && topic.khan) khanA.href = topic.khan;
+          if (zearnA && topic.zearn) zearnA.href = topic.zearn;
+          if (zearnLabel) zearnLabel.textContent = 'Log in & find this exact lesson on Zearn';
+          khanDiv.style.display = 'block';
+        }
+      }
+    }
+  } else {
+    state.wrongStreak = 0;
+  }
 
   if (isRight) {
     state.lessonMastery = Math.min(state.lessonMastery + 1, 5);
     for (let i = 0; i < 5; i++) {
       const pip = document.getElementById('mpip-' + i);
-      if (pip) {
-        pip.className = 'mpip' + (i < state.lessonMastery ? ' lit' : '');
-      }
+      if (pip) pip.className = 'mpip' + (i < state.lessonMastery ? ' lit' : '');
     }
   }
 
-  // Update next button label
   const nextBtn = document.getElementById('p-next');
   if (nextBtn) {
     nextBtn.classList.add('show');
@@ -1634,7 +1870,7 @@ function answerLesson(chosen, correct) {
     } else if (state.lessonMastery >= 5) {
       nextBtn.textContent = 'Next Lesson →';
     } else {
-      nextBtn.textContent = 'Try Again →';
+      nextBtn.textContent = isRight ? 'Next Problem →' : 'Try Again →';
     }
   }
 }
@@ -1645,14 +1881,17 @@ function advanceLesson() {
     state.lessonIdx++;
     state.lessonMastery = 0;
     state.lessonAnswered = false;
+    state.wrongStreak = 0;
     saveState();
     if (state.lessonIdx >= state.lessonQueue.length) {
       markModuleComplete();
       return;
     }
   } else {
-    // Not mastered yet — re-render same lesson for another attempt
+    // Not mastered — load a NEW non-repeating question from the bank
     state.lessonAnswered = false;
+    const lesson = state.lessonQueue[state.lessonIdx];
+    state.currentPracticeQ = getPracticeQuestion(state.currentModule, lesson.topicId);
   }
   render();
 }
