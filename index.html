@@ -662,20 +662,28 @@ body { background: #0d0e14 !important; background-color: #0d0e14 !important; }
 // ══════════════════════════════════════════════════════════════════
 
 // Shuffle answer choices while tracking the correct answer
-function shuffleChoices(choices, correctIdx) {
-  const correct = choices[correctIdx];
-  const shuffled = [...choices];
-  for (let i = shuffled.length - 1; i > 0; i--) {
+function fisherYates(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    [a[i], a[j]] = [a[j], a[i]];
   }
-  return { choices: shuffled, correct: shuffled.indexOf(correct) };
+  return a;
+}
+
+function shuffleChoices(choices, correctIdx) {
+  const tagged = choices.map((c, i) => ({ text: c, isCorrect: i === correctIdx }));
+  const shuffled = fisherYates(tagged);
+  return {
+    choices: shuffled.map(x => x.text),
+    correct: shuffled.findIndex(x => x.isCorrect)
+  };
 }
 
 // Draw N random non-repeating questions from a bank
 function drawQuestions(bank, n, usedIndices) {
   const available = bank.map((_, i) => i).filter(i => !usedIndices.includes(i));
-  const shuffled = available.sort(() => Math.random() - 0.5);
+  const shuffled = fisherYates(available);
   const picked = shuffled.slice(0, Math.min(n, shuffled.length));
   return picked.map(i => {
     const q = bank[i];
@@ -1681,6 +1689,7 @@ function startLearning() {
   state.lessonIdx = 0;
   state.lessonMastery = 0;
   state.lessonAnswered = false;
+  state.currentPracticeQ = null;
   saveState();
   render();
 }
@@ -1695,8 +1704,10 @@ function renderLesson() {
   const lesson = state.lessonQueue[state.lessonIdx];
   state.lessonAnswered = false;
 
-  // Draw a fresh non-repeating practice question from the bank
-  state.currentPracticeQ = getPracticeQuestion(state.currentModule, lesson.topicId);
+  // Only load a new question if one isn't already queued (prevents render() overwriting advanceLesson's choice)
+  if (!state.currentPracticeQ) {
+    state.currentPracticeQ = getPracticeQuestion(state.currentModule, lesson.topicId);
+  }
 
   // Queue visualization
   const queueHtml = state.lessonQueue.map((l, i) => {
@@ -1882,14 +1893,16 @@ function advanceLesson() {
     state.lessonMastery = 0;
     state.lessonAnswered = false;
     state.wrongStreak = 0;
+    state.currentPracticeQ = null;
     saveState();
     if (state.lessonIdx >= state.lessonQueue.length) {
       markModuleComplete();
       return;
     }
   } else {
-    // Not mastered — load a NEW non-repeating question from the bank
+    // Not mastered — clear and pre-load next question BEFORE render()
     state.lessonAnswered = false;
+    state.currentPracticeQ = null;
     const lesson = state.lessonQueue[state.lessonIdx];
     state.currentPracticeQ = getPracticeQuestion(state.currentModule, lesson.topicId);
   }
