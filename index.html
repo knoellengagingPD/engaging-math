@@ -609,6 +609,7 @@ body { background: #0d0e14 !important; background-color: #0d0e14 !important; }
   -webkit-text-fill-color: transparent !important;
 }
 </style>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body style="background:#0d0e14 !important;background-color:#0d0e14 !important;min-height:100vh;">
 <div class="shell" style="background:#0d0e14 !important;min-height:100vh;">
@@ -662,28 +663,20 @@ body { background: #0d0e14 !important; background-color: #0d0e14 !important; }
 // ══════════════════════════════════════════════════════════════════
 
 // Shuffle answer choices while tracking the correct answer
-function fisherYates(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
 function shuffleChoices(choices, correctIdx) {
-  const tagged = choices.map((c, i) => ({ text: c, isCorrect: i === correctIdx }));
-  const shuffled = fisherYates(tagged);
-  return {
-    choices: shuffled.map(x => x.text),
-    correct: shuffled.findIndex(x => x.isCorrect)
-  };
+  const correct = choices[correctIdx];
+  const shuffled = [...choices];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return { choices: shuffled, correct: shuffled.indexOf(correct) };
 }
 
 // Draw N random non-repeating questions from a bank
 function drawQuestions(bank, n, usedIndices) {
   const available = bank.map((_, i) => i).filter(i => !usedIndices.includes(i));
-  const shuffled = fisherYates(available);
+  const shuffled = available.sort(() => Math.random() - 0.5);
   const picked = shuffled.slice(0, Math.min(n, shuffled.length));
   return picked.map(i => {
     const q = bank[i];
@@ -741,22 +734,28 @@ const MODULES = [
     topics: [
       { id:'m1a', zearn:'G5M1 · Lessons 1–4', label:'A', name:'Multiplicative Patterns on the Place Value Chart', skills:4,
         khan: 'https://www.khanacademy.org/math/cc-fifth-grade-math/powers-of-ten/cc-5th-mult-div-decimals-10/e/multiples-of-10',
-        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-a-multiplicative-patterns-on-the-place-value-chart' },
+        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-a-multiplicative-patterns-on-the-place-value-chart',
+        zearnLesson: 'G5 Mission 1 · Lessons 1–4' },
       { id:'m1b', zearn:'G5M1 · Lessons 5–6', label:'B', name:'Decimal Fractions & Place Value Patterns', skills:3,
         khan: 'https://www.khanacademy.org/math/cc-fifth-grade-math/5th-place-value-decimals/cc-5th-written-form-decimals/e/writing-decimals-in-different-forms',
-        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-b-decimal-fractions-and-place-value-patterns' },
+        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-b-decimal-fractions-and-place-value-patterns',
+        zearnLesson: 'G5 Mission 1 · Lessons 5–6' },
       { id:'m1c', zearn:'G5M1 · Lessons 7–8', label:'C', name:'Place Value & Rounding Decimals', skills:3,
         khan: 'https://www.khanacademy.org/math/cc-fifth-grade-math/5th-place-value-decimals/cc-5th-rounding-decimals/e/rounding-decimals',
-        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-c-place-value-and-rounding-decimal-fractions' },
+        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-c-place-value-and-rounding-decimal-fractions',
+        zearnLesson: 'G5 Mission 1 · Lessons 7–8' },
       { id:'m1d', zearn:'G5M1 · Lessons 9–10', label:'D', name:'Adding & Subtracting Decimals', skills:4,
         khan: 'https://www.khanacademy.org/math/cc-fifth-grade-math/5th-add-subtract-decimals/cc-5th-add-subtract-decimals/e/adding-decimals',
-        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-d-adding-and-subtracting-decimals' },
+        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-d-adding-and-subtracting-decimals',
+        zearnLesson: 'G5 Mission 1 · Lessons 9–10' },
       { id:'m1e', zearn:'G5M1 · Lessons 11–12', label:'E', name:'Multiplying Decimals', skills:3,
         khan: 'https://www.khanacademy.org/math/cc-fifth-grade-math/5th-multiply-decimals/cc-5th-multiply-decimals-0.1-0.01/e/multiplying-decimals',
-        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-e-multiplying-decimals' },
+        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-e-multiplying-decimals',
+        zearnLesson: 'G5 Mission 1 · Lessons 11–12' },
       { id:'m1f', zearn:'G5M1 · Lessons 13–16', label:'F', name:'Dividing Decimals', skills:4,
         khan: 'https://www.khanacademy.org/math/cc-fifth-grade-math/5th-dividing-decimals/cc-5th-dividing-decimals/e/dividing-decimals',
-        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-f-dividing-decimals' },
+        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-f-dividing-decimals',
+        zearnLesson: 'G5 Mission 1 · Lessons 13–16' },
     ],
     // QUESTION BANKS — 6+ questions per topic, answers NOT always index 0
     topicBanks: [
@@ -895,22 +894,28 @@ const MODULES = [
     topics: [
       { id:'m2a', zearn:'G5M2 · Lessons 1–3', label:'A', name:'Mental Strategies for Multiplication', skills:3,
         khan: 'https://www.khanacademy.org/math/cc-fifth-grade-math/5th-multiply-decimals/cc-5th-mult-whole-numbers/e/multiplication_3',
-        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-a-mental-strategies-for-multi-digit-whole-number-multiplication' },
+        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-a-mental-strategies-for-multi-digit-whole-number-multiplication',
+        zearnLesson: 'G5 Mission 2 · Lessons 1–2' },
       { id:'m2b', zearn:'G5M2 · Lessons 4–8', label:'B', name:'Standard Multiplication Algorithm', skills:5,
         khan: 'https://www.khanacademy.org/math/cc-fifth-grade-math/5th-multiply-decimals/cc-5th-mult-whole-numbers/e/multiplication_4',
-        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-b-the-standard-algorithm-for-multi-digit-whole-number-multiplication' },
+        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-b-the-standard-algorithm-for-multi-digit-whole-number-multiplication',
+        zearnLesson: 'G5 Mission 2 · Lessons 3–8' },
       { id:'m2c', zearn:'G5M2 · Lessons 9–12', label:'C', name:'Decimal Multi-Digit Multiplication', skills:4,
         khan: 'https://www.khanacademy.org/math/cc-fifth-grade-math/5th-multiply-decimals/cc-5th-multiply-decimals-0.1-0.01/e/multiplying-decimals-2',
-        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-c-decimal-multi-digit-multiplication' },
+        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-c-decimal-multi-digit-multiplication',
+        zearnLesson: 'G5 Mission 2 · Lessons 9–12' },
       { id:'m2d', zearn:'G5M2 · Lessons 13–15', label:'D', name:'Multiplication Word Problems', skills:3,
         khan: 'https://www.khanacademy.org/math/cc-fifth-grade-math/5th-multiply-decimals/cc-5th-mult-decimals-word-problems/e/decimals-word-problems',
-        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-d-measurement-word-problems-with-whole-number-and-decimal-multiplication' },
+        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-d-measurement-word-problems-with-whole-number-and-decimal-multiplication',
+        zearnLesson: 'G5 Mission 2 · Lessons 13–15' },
       { id:'m2e', zearn:'G5M2 · Lessons 16–18', label:'E', name:'Mental Strategies for Division', skills:3,
         khan: 'https://www.khanacademy.org/math/cc-fifth-grade-math/5th-dividing-decimals/cc-5th-dividing-decimals/e/division-by-2-digits',
-        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-e-mental-strategies-for-multi-digit-whole-number-division' },
+        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-e-mental-strategies-for-multi-digit-whole-number-division',
+        zearnLesson: 'G5 Mission 2 · Lessons 16–17' },
       { id:'m2f', zearn:'G5M2 · Lessons 19–25', label:'F', name:'Partial Quotients Division', skills:5,
         khan: 'https://www.khanacademy.org/math/cc-fifth-grade-math/5th-dividing-decimals/cc-5th-dividing-decimals/e/dividing-decimals-2',
-        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-f-partial-quotients-and-multi-digit-whole-number-division' },
+        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-f-partial-quotients-and-multi-digit-whole-number-division',
+        zearnLesson: 'G5 Mission 2 · Lessons 18–28' },
     ],
     topicBanks: [
       // Topic A: Mental Multiplication
@@ -1002,16 +1007,20 @@ const MODULES = [
     topics: [
       { id:'m3a', zearn:'G5M3 · Lessons 1–4', label:'A', name:'Equivalent Fractions', skills:3,
         khan: 'https://www.khanacademy.org/math/cc-fifth-grade-math/5th-fractions/cc-5th-equivalent-fractions/e/equivalent_fractions',
-        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-a-equivalent-fractions' },
+        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-a-equivalent-fractions',
+        zearnLesson: 'G5 Mission 3 · Lessons 1–2' },
       { id:'m3b', zearn:'G5M3 · Lessons 5–8', label:'B', name:'Making Like Units Pictorially', skills:3,
         khan: 'https://www.khanacademy.org/math/cc-fifth-grade-math/5th-fractions/cc-5th-add-sub-fractions/e/adding-fractions-with-unlike-denominators-visually',
-        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-b-making-like-units-pictorially' },
+        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-b-making-like-units-pictorially',
+        zearnLesson: 'G5 Mission 3 · Lessons 3–7' },
       { id:'m3c', zearn:'G5M3 · Lessons 9–12', label:'C', name:'Making Like Units Numerically', skills:5,
         khan: 'https://www.khanacademy.org/math/cc-fifth-grade-math/5th-fractions/cc-5th-add-sub-fractions/e/adding-fractions',
-        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-c-making-like-units-numerically' },
+        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-c-making-like-units-numerically',
+        zearnLesson: 'G5 Mission 3 · Lessons 8–14' },
       { id:'m3d', zearn:'G5M3 · Lessons 13–16', label:'D', name:'Further Applications', skills:4,
         khan: 'https://www.khanacademy.org/math/cc-fifth-grade-math/5th-fractions/cc-5th-add-sub-mixed-numbers/e/adding-mixed-numbers',
-        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-d-further-applications' },
+        zearn: 'https://www.zearn.org/learn/math/grade-5/topic-d-further-applications',
+        zearnLesson: 'G5 Mission 3 · Lessons 15–16' },
     ],
     topicBanks: [
       // Topic A: Equivalent Fractions
@@ -1156,6 +1165,7 @@ function freshState(studentName) {
     lessonAnswered: false,
     wrongStreak: 0,
     currentPracticeQ: null,
+    sessionStruggles: [],   // { moduleId, topicId, topicName, zearnLesson, khan, zearn, missedCount }
     moduleStates: []
   };
   MODULES.forEach((_, i) => s.moduleStates.push(i === 0 ? 'assess' : 'locked'));
@@ -1689,7 +1699,6 @@ function startLearning() {
   state.lessonIdx = 0;
   state.lessonMastery = 0;
   state.lessonAnswered = false;
-  state.currentPracticeQ = null;
   saveState();
   render();
 }
@@ -1704,10 +1713,8 @@ function renderLesson() {
   const lesson = state.lessonQueue[state.lessonIdx];
   state.lessonAnswered = false;
 
-  // Only load a new question if one isn't already queued (prevents render() overwriting advanceLesson's choice)
-  if (!state.currentPracticeQ) {
-    state.currentPracticeQ = getPracticeQuestion(state.currentModule, lesson.topicId);
-  }
+  // Draw a fresh non-repeating practice question from the bank
+  state.currentPracticeQ = getPracticeQuestion(state.currentModule, lesson.topicId);
 
   // Queue visualization
   const queueHtml = state.lessonQueue.map((l, i) => {
@@ -1794,8 +1801,9 @@ function renderLesson() {
                 onmouseover="this.style.background='#1e2236'" onmouseout="this.style.background='#16192a'">
                 <div style="width:32px;height:32px;border-radius:8px;background:rgba(99,102,241,0.15);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">⭐</div>
                 <div>
-                  <div style="font-weight:700;font-size:0.85rem;color:#818cf8;">Zearn Math Lesson</div>
-                  <div id="zearn-label" style="font-size:0.72rem;color:rgba(255,255,255,0.5);">Visual models + animated instruction</div>
+                  <div style="font-weight:700;font-size:0.85rem;color:#818cf8;">Zearn Math</div>
+                  <div id="zearn-label" style="font-size:0.72rem;color:rgba(255,255,255,0.5);">Log in → go to this lesson</div>
+                  <div id="zearn-lesson-tag" style="display:none;margin-top:4px;padding:2px 8px;background:rgba(99,102,241,0.2);border:1px solid rgba(99,102,241,0.4);border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:#a5b4fc;font-weight:700;letter-spacing:0.04em;"></div>
                 </div>
                 <div style="margin-left:auto;color:rgba(255,255,255,0.3);font-size:1rem;">›</div>
               </a>
@@ -1843,6 +1851,29 @@ function answerLesson(chosen) {
   fb.className = `p-feedback show ${isRight ? 'pf-right' : 'pf-wrong'}`;
   fb.textContent = (isRight ? '✓ ' : '✗ ') + pq.explain;
 
+  // Track struggle in session log
+  if (!isRight) {
+    const m2 = MODULES[state.currentModule];
+    const lesson2 = state.lessonQueue[state.lessonIdx];
+    const topic2 = m2.topics.find(t => t.id === lesson2.topicId);
+    if (topic2) {
+      const existing = state.sessionStruggles.find(s => s.topicId === lesson2.topicId);
+      if (existing) {
+        existing.missedCount++;
+      } else {
+        state.sessionStruggles.push({
+          moduleId: state.currentModule,
+          topicId: lesson2.topicId,
+          topicName: topic2.name,
+          zearnLesson: topic2.zearnLesson || '',
+          khan: topic2.khan || '',
+          zearn: topic2.zearn || '',
+          missedCount: 1
+        });
+      }
+    }
+  }
+
   // Show Khan Academy link after wrong answer (up to 2 wrong answers on this topic)
   if (!isRight) {
     state.wrongStreak = (state.wrongStreak || 0) + 1;
@@ -1856,7 +1887,12 @@ function answerLesson(chosen) {
         if (khanDiv) {
           if (khanA && topic.khan) khanA.href = topic.khan;
           if (zearnA && topic.zearn) zearnA.href = topic.zearn;
-          if (zearnLabel) zearnLabel.textContent = 'Log in & find this exact lesson on Zearn';
+          if (zearnLabel) zearnLabel.textContent = 'Log in → find this lesson';
+          const zearnTag = document.getElementById('zearn-lesson-tag');
+          if (zearnTag && topic.zearnLesson) {
+            zearnTag.textContent = topic.zearnLesson;
+            zearnTag.style.display = 'inline-block';
+          }
           khanDiv.style.display = 'block';
         }
       }
@@ -1893,16 +1929,14 @@ function advanceLesson() {
     state.lessonMastery = 0;
     state.lessonAnswered = false;
     state.wrongStreak = 0;
-    state.currentPracticeQ = null;
     saveState();
     if (state.lessonIdx >= state.lessonQueue.length) {
       markModuleComplete();
       return;
     }
   } else {
-    // Not mastered — clear and pre-load next question BEFORE render()
+    // Not mastered — load a NEW non-repeating question from the bank
     state.lessonAnswered = false;
-    state.currentPracticeQ = null;
     const lesson = state.lessonQueue[state.lessonIdx];
     state.currentPracticeQ = getPracticeQuestion(state.currentModule, lesson.topicId);
   }
@@ -1967,6 +2001,10 @@ function renderComplete() {
           🎉 All Modules Complete — Grade 5 Done!
         </button>
       `}
+
+      <button onclick="showDailyReport()" style="margin-top:12px;width:100%;padding:13px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:#ffffff;font-family:'Syne',sans-serif;font-weight:700;font-size:0.88rem;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:8px;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">
+        📧 Send Today's Progress Report
+      </button>
     </div>
   `;
 }
@@ -1983,6 +2021,344 @@ function goNextModule() {
   state.lessonMastery = 0;
   saveState();
   render();
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  DAILY REPORT & EMAIL
+// ══════════════════════════════════════════════════════════════════
+
+// EmailJS config — filled in by teacher once
+const EMAILJS_CONFIG = {
+  serviceId:  localStorage.getItem('em_service')  || '',
+  templateId: localStorage.getItem('em_template') || '',
+  publicKey:  localStorage.getItem('em_pubkey')   || '',
+  toEmail:    localStorage.getItem('em_to')       || ''
+};
+
+function saveEmailConfig() {
+  const s = document.getElementById('em-service').value.trim();
+  const t = document.getElementById('em-template').value.trim();
+  const k = document.getElementById('em-pubkey').value.trim();
+  const e = document.getElementById('em-to').value.trim();
+  localStorage.setItem('em_service', s);
+  localStorage.setItem('em_to', e);
+  localStorage.setItem('em_template', t);
+  localStorage.setItem('em_pubkey', k);
+  EMAILJS_CONFIG.serviceId  = s;
+  EMAILJS_CONFIG.templateId = t;
+  EMAILJS_CONFIG.publicKey  = k;
+  EMAILJS_CONFIG.toEmail    = e;
+  document.getElementById('config-saved').style.display = 'block';
+  setTimeout(() => { document.getElementById('config-saved').style.display = 'none'; }, 2000);
+}
+
+function buildReportText() {
+  const today = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  const m = MODULES[state.currentModule];
+  const taughtTopics = state.gapTopics.map(i => m.topics[i]);
+  const skippedTopics = state.passTopics.map(i => m.topics[i]);
+  const struggles = state.sessionStruggles;
+
+  let text = `ENGAGING MATH — DAILY PROGRESS REPORT
+`;
+  text += `${'='.repeat(45)}
+`;
+  text += `Student:  ${state.studentName}
+`;
+  text += `Date:     ${today}
+`;
+  text += `Module:   ${state.currentModule + 1} — ${m.title}
+
+`;
+
+  text += `SUMMARY
+${'-'.repeat(30)}
+`;
+  text += `Topics already mastered (skipped): ${skippedTopics.length}
+`;
+  text += `Topics taught today:               ${taughtTopics.length}
+`;
+  text += `Topics with repeated errors:       ${struggles.length}
+
+`;
+
+  if (taughtTopics.length > 0) {
+    text += `TOPICS TAUGHT TODAY
+${'-'.repeat(30)}
+`;
+    taughtTopics.forEach(t => {
+      text += `• Topic ${t.label}: ${t.name}
+`;
+      if (t.zearnLesson) text += `  Zearn: ${t.zearnLesson}
+`;
+    });
+    text += '
+';
+  }
+
+  if (struggles.length > 0) {
+    text += `NEEDS MORE PRACTICE (missed 2+ questions)
+${'-'.repeat(30)}
+`;
+    struggles.forEach(s => {
+      const mod = MODULES[s.moduleId];
+      text += `• ${s.topicName}
+`;
+      if (s.zearnLesson) text += `  📺 Zearn lesson:        ${s.zearnLesson}
+`;
+      if (s.zearn)       text += `  🔗 Zearn link:          ${s.zearn}
+`;
+      if (s.khan)        text += `  🎓 Khan Academy:        ${s.khan}
+`;
+      text += '
+';
+    });
+  } else {
+    text += `No topics with repeated errors today — great session!
+
+`;
+  }
+
+  if (skippedTopics.length > 0) {
+    text += `ALREADY MASTERED (skipped)
+${'-'.repeat(30)}
+`;
+    skippedTopics.forEach(t => { text += `✓ Topic ${t.label}: ${t.name}
+`; });
+    text += '
+';
+  }
+
+  text += `${'='.repeat(45)}
+`;
+  text += `Sent from Engaging Math · engagingpd.com
+`;
+  return text;
+}
+
+function buildReportHTML() {
+  const today = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  const m = MODULES[state.currentModule];
+  const taughtTopics = state.gapTopics.map(i => m.topics[i]);
+  const skippedTopics = state.passTopics.map(i => m.topics[i]);
+  const struggles = state.sessionStruggles;
+
+  const accentColor = m.color;
+
+  let html = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;color:#1a1a2e;">`;
+  // Header
+  html += `<div style="background:${accentColor};padding:28px 32px;border-radius:10px 10px 0 0;">
+    <div style="font-size:1.4rem;font-weight:900;color:#ffffff;margin-bottom:4px;">Engaging Math</div>
+    <div style="font-size:0.85rem;color:rgba(255,255,255,0.85);">Daily Progress Report</div>
+  </div>`;
+  // Meta
+  html += `<div style="padding:20px 32px;background:#f8f9ff;border-bottom:2px solid #e8eaf0;">
+    <table style="width:100%;font-size:0.9rem;">
+      <tr><td style="color:#666;padding:3px 0;width:90px;">Student</td><td style="font-weight:700;">${state.studentName}</td></tr>
+      <tr><td style="color:#666;padding:3px 0;">Date</td><td style="font-weight:700;">${today}</td></tr>
+      <tr><td style="color:#666;padding:3px 0;">Module</td><td style="font-weight:700;">${state.currentModule + 1} — ${m.title}</td></tr>
+    </table>
+  </div>`;
+  // Summary pills
+  html += `<div style="padding:20px 32px;display:flex;gap:12px;flex-wrap:wrap;">
+    <div style="background:#e8f5e9;border-radius:8px;padding:12px 18px;text-align:center;flex:1;">
+      <div style="font-size:1.6rem;font-weight:900;color:#2e7d32;">${skippedTopics.length}</div>
+      <div style="font-size:0.72rem;color:#388e3c;text-transform:uppercase;letter-spacing:0.05em;">Already Mastered</div>
+    </div>
+    <div style="background:#e3f2fd;border-radius:8px;padding:12px 18px;text-align:center;flex:1;">
+      <div style="font-size:1.6rem;font-weight:900;color:#1565c0;">${taughtTopics.length}</div>
+      <div style="font-size:0.72rem;color:#1976d2;text-transform:uppercase;letter-spacing:0.05em;">Topics Taught</div>
+    </div>
+    <div style="background:${struggles.length > 0 ? '#fff3e0' : '#e8f5e9'};border-radius:8px;padding:12px 18px;text-align:center;flex:1;">
+      <div style="font-size:1.6rem;font-weight:900;color:${struggles.length > 0 ? '#e65100' : '#2e7d32'};">${struggles.length}</div>
+      <div style="font-size:0.72rem;color:${struggles.length > 0 ? '#ef6c00' : '#388e3c'};text-transform:uppercase;letter-spacing:0.05em;">Need More Practice</div>
+    </div>
+  </div>`;
+
+  // Needs practice section
+  if (struggles.length > 0) {
+    html += `<div style="padding:0 32px 20px;">
+      <div style="font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:#666;margin-bottom:12px;font-weight:700;">⚠ Needs More Practice</div>`;
+    struggles.forEach(s => {
+      html += `<div style="border:1px solid #ffccbc;border-radius:8px;padding:14px 16px;margin-bottom:10px;background:#fff8f5;">
+        <div style="font-weight:700;font-size:0.92rem;color:#bf360c;margin-bottom:8px;">${s.topicName}</div>`;
+      if (s.zearnLesson) html += `<div style="font-size:0.78rem;margin-bottom:6px;">📺 <strong>Zearn Lesson:</strong> ${s.zearnLesson}</div>`;
+      if (s.zearn)       html += `<div style="font-size:0.78rem;margin-bottom:4px;">🔗 <a href="${s.zearn}" style="color:#5c6bc0;">Open in Zearn →</a></div>`;
+      if (s.khan)        html += `<div style="font-size:0.78rem;">🎓 <a href="${s.khan}" style="color:#1976d2;">Open in Khan Academy →</a></div>`;
+      html += `</div>`;
+    });
+    html += `</div>`;
+  } else {
+    html += `<div style="padding:0 32px 20px;">
+      <div style="background:#e8f5e9;border-radius:8px;padding:14px 16px;font-size:0.88rem;color:#2e7d32;font-weight:600;">
+        ✅ No repeated errors today — excellent session!
+      </div>
+    </div>`;
+  }
+
+  // Topics taught
+  if (taughtTopics.length > 0) {
+    html += `<div style="padding:0 32px 20px;">
+      <div style="font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:#666;margin-bottom:12px;font-weight:700;">Topics Taught Today</div>`;
+    taughtTopics.forEach(t => {
+      html += `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #eee;font-size:0.85rem;">
+        <span style="color:${accentColor};font-weight:700;">Topic ${t.label}</span>
+        <span>${t.name}</span>
+        ${t.zearnLesson ? `<span style="margin-left:auto;font-size:0.7rem;color:#666;">${t.zearnLesson}</span>` : ''}
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // Footer
+  html += `<div style="padding:16px 32px;background:#f8f9ff;border-radius:0 0 10px 10px;font-size:0.72rem;color:#999;border-top:1px solid #e8eaf0;">
+    Sent from <strong>Engaging Math</strong> · engagingpd.com
+  </div></div>`;
+  return html;
+}
+
+async function sendEmailReport(toEmail) {
+  const btn = document.getElementById('send-email-btn');
+  const status = document.getElementById('email-status');
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  status.style.display = 'none';
+
+  try {
+    emailjs.init(EMAILJS_CONFIG.publicKey);
+    const result = await emailjs.send(
+      EMAILJS_CONFIG.serviceId,
+      EMAILJS_CONFIG.templateId,
+      {
+        to_email:     toEmail,
+        student_name: state.studentName,
+        report_date:  new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' }),
+        module_name:  `Module ${state.currentModule + 1} — ${MODULES[state.currentModule].title}`,
+        report_text:  buildReportText(),
+        report_html:  buildReportHTML(),
+      }
+    );
+    btn.textContent = '✓ Report Sent!';
+    btn.style.background = 'rgba(62,207,142,0.2)';
+    btn.style.borderColor = 'rgba(62,207,142,0.4)';
+    status.textContent = `Sent to ${toEmail}`;
+    status.style.color = '#3ecf8e';
+    status.style.display = 'block';
+  } catch(err) {
+    btn.disabled = false;
+    btn.textContent = 'Send Report';
+    status.textContent = 'Error: ' + (err.text || err.message || JSON.stringify(err));
+    status.style.color = '#ff6b6b';
+    status.style.display = 'block';
+    console.error('EmailJS error:', err);
+  }
+}
+
+function showDailyReport() {
+  const hasConfig = EMAILJS_CONFIG.serviceId && EMAILJS_CONFIG.templateId && EMAILJS_CONFIG.publicKey;
+  const struggles = state.sessionStruggles;
+  const m = MODULES[state.currentModule];
+  const taughtTopics = state.gapTopics.map(i => m.topics[i]);
+  const skippedTopics = state.passTopics.map(i => m.topics[i]);
+
+  // Build modal
+  const modal = document.createElement('div');
+  modal.id = 'report-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+  modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+
+  modal.innerHTML = `
+    <div style="background:#16192a;border:1px solid rgba(255,255,255,0.12);border-radius:16px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;">
+
+      <!-- Header -->
+      <div style="padding:20px 24px;border-bottom:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-family:'Fraunces',serif;font-size:1.2rem;font-weight:900;color:#ffffff;">Today's Progress Report</div>
+          <div style="font-size:0.72rem;color:rgba(255,255,255,0.45);margin-top:2px;font-family:'JetBrains Mono',monospace;">${state.studentName} · ${new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
+        </div>
+        <button onclick="document.getElementById('report-modal').remove()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:rgba(255,255,255,0.6);width:32px;height:32px;cursor:pointer;font-size:1rem;">✕</button>
+      </div>
+
+      <!-- Summary -->
+      <div style="padding:16px 24px;display:flex;gap:10px;">
+        <div style="flex:1;background:rgba(62,207,142,0.08);border:1px solid rgba(62,207,142,0.2);border-radius:8px;padding:10px;text-align:center;">
+          <div style="font-size:1.5rem;font-weight:900;color:#3ecf8e;">${skippedTopics.length}</div>
+          <div style="font-size:0.6rem;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.08em;">Mastered</div>
+        </div>
+        <div style="flex:1;background:rgba(124,107,255,0.08);border:1px solid rgba(124,107,255,0.2);border-radius:8px;padding:10px;text-align:center;">
+          <div style="font-size:1.5rem;font-weight:900;color:#7c6bff;">${taughtTopics.length}</div>
+          <div style="font-size:0.6rem;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.08em;">Taught</div>
+        </div>
+        <div style="flex:1;background:${struggles.length > 0 ? 'rgba(255,124,77,0.08)' : 'rgba(62,207,142,0.08)'};border:1px solid ${struggles.length > 0 ? 'rgba(255,124,77,0.2)' : 'rgba(62,207,142,0.2)'};border-radius:8px;padding:10px;text-align:center;">
+          <div style="font-size:1.5rem;font-weight:900;color:${struggles.length > 0 ? '#ff7c4d' : '#3ecf8e'};">${struggles.length}</div>
+          <div style="font-size:0.6rem;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.08em;">Need Practice</div>
+        </div>
+      </div>
+
+      <!-- Struggles list -->
+      ${struggles.length > 0 ? `
+        <div style="padding:0 24px 16px;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:0.58rem;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.4);margin-bottom:10px;">⚠ Topics Needing More Work</div>
+          ${struggles.map(s => `
+            <div style="background:rgba(255,124,77,0.06);border:1px solid rgba(255,124,77,0.18);border-radius:8px;padding:12px 14px;margin-bottom:8px;">
+              <div style="font-weight:700;font-size:0.88rem;color:#ffffff;margin-bottom:6px;">${s.topicName}</div>
+              ${s.zearnLesson ? `<div style="font-size:0.72rem;color:rgba(255,255,255,0.6);margin-bottom:3px;">📺 Zearn: <strong style="color:#a5b4fc;">${s.zearnLesson}</strong></div>` : ''}
+              ${s.zearn ? `<div style="font-size:0.72rem;margin-bottom:2px;"><a href="${s.zearn}" target="_blank" style="color:#818cf8;">🔗 Open in Zearn →</a></div>` : ''}
+              ${s.khan ? `<div style="font-size:0.72rem;"><a href="${s.khan}" target="_blank" style="color:#4285f4;">🎓 Open in Khan Academy →</a></div>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      ` : `
+        <div style="padding:0 24px 16px;">
+          <div style="background:rgba(62,207,142,0.08);border:1px solid rgba(62,207,142,0.2);border-radius:8px;padding:12px 14px;font-size:0.85rem;color:#3ecf8e;">✅ No repeated errors today — excellent session!</div>
+        </div>
+      `}
+
+      <!-- Email section -->
+      <div style="padding:0 24px 20px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:0.58rem;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.4);margin-bottom:10px;">📧 Email This Report</div>
+
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <input id="report-email" type="email" placeholder="Send to: teacher@school.com"
+            value="${EMAILJS_CONFIG.toEmail}"
+            style="flex:1;padding:10px 12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:#ffffff;font-family:'Syne',sans-serif;font-size:0.85rem;outline:none;"
+            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='rgba(255,255,255,0.12)'" />
+          <button id="send-email-btn" onclick="sendEmailReport(document.getElementById('report-email').value)"
+            style="padding:10px 18px;background:var(--accent);border:none;border-radius:8px;color:#ffffff;font-family:'Syne',sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;white-space:nowrap;">
+            Send Report
+          </button>
+        </div>
+        <div id="email-status" style="display:none;font-size:0.78rem;margin-bottom:10px;"></div>
+
+        ${!hasConfig ? `
+          <details style="margin-top:8px;">
+            <summary style="font-size:0.72rem;color:rgba(255,255,255,0.4);cursor:pointer;font-family:'JetBrains Mono',monospace;letter-spacing:0.06em;">⚙ First-time setup: EmailJS credentials</summary>
+            <div style="margin-top:10px;padding:14px;background:rgba(255,255,255,0.03);border-radius:8px;font-size:0.75rem;color:rgba(255,255,255,0.6);line-height:1.7;">
+              <strong style="color:#ffffff;">One-time setup (free):</strong><br>
+              1. Go to <a href="https://www.emailjs.com" target="_blank" style="color:#7c6bff;">emailjs.com</a> → create a free account<br>
+              2. Add an Email Service (Gmail works great)<br>
+              3. Create a Template — use variables: <code style="background:rgba(255,255,255,0.1);padding:1px 4px;border-radius:3px;">{{report_html}}</code> and <code style="background:rgba(255,255,255,0.1);padding:1px 4px;border-radius:3px;">{{to_email}}</code><br>
+              4. Paste your IDs below and click Save<br>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;">
+              <input id="em-service" placeholder="Service ID" value="${EMAILJS_CONFIG.serviceId}"
+                style="padding:8px 10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#fff;font-family:monospace;font-size:0.72rem;outline:none;" />
+              <input id="em-template" placeholder="Template ID" value="${EMAILJS_CONFIG.templateId}"
+                style="padding:8px 10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#fff;font-family:monospace;font-size:0.72rem;outline:none;" />
+              <input id="em-pubkey" placeholder="Public Key" value="${EMAILJS_CONFIG.publicKey}"
+                style="padding:8px 10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#fff;font-family:monospace;font-size:0.72rem;outline:none;" />
+              <input id="em-to" placeholder="Default recipient email" value="${EMAILJS_CONFIG.toEmail}"
+                style="padding:8px 10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#fff;font-family:monospace;font-size:0.72rem;outline:none;" />
+            </div>
+            <button onclick="saveEmailConfig()" style="margin-top:8px;padding:8px 16px;background:rgba(124,107,255,0.2);border:1px solid rgba(124,107,255,0.4);border-radius:6px;color:#a5b4fc;font-family:'Syne',sans-serif;font-weight:700;font-size:0.75rem;cursor:pointer;">Save Credentials</button>
+            <span id="config-saved" style="display:none;margin-left:10px;font-size:0.72rem;color:#3ecf8e;">✓ Saved!</span>
+          </details>
+        ` : ''}
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
 }
 
 // ══════════════════════════════════════════════════════════════════
