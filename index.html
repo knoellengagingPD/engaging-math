@@ -1089,6 +1089,10 @@ const MODULES = [
 // ══════════════════════════════════════════════════════════════════
 const STORAGE_KEY = 'apex_5th_grade';
 
+function safeLocalStorage(fn) {
+  try { return fn(); } catch(e) { return null; }
+}
+
 function saveState() {
   try {
     const toSave = {
@@ -1113,7 +1117,7 @@ function saveState() {
 
 function loadState(studentName) {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY + '_' + studentName);
+    const raw = safeLocalStorage(() => localStorage.getItem(STORAGE_KEY + '_' + studentName));
     if (!raw) return null;
     const saved = JSON.parse(raw);
     const m = MODULES[saved.currentModule];
@@ -1127,6 +1131,7 @@ function loadState(studentName) {
 
 function getAllStudents() {
   const students = [];
+  try {
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
     if (key && key.startsWith(STORAGE_KEY + '_')) {
@@ -1150,7 +1155,7 @@ function deleteStudent(name) {
 
 function freshState(studentName) {
   const s = {
-    studentName: studentName || 'Student',
+    studentName: (studentName || 'Student').toString(),
     currentModule: 0,
     phase: 'intro',
     assessIdx: 0,
@@ -2032,18 +2037,22 @@ const EMAILJS_CONFIG = {
   serviceId:  'service_dxzt0ar',
   templateId: 'template_xn2bhe7',
   publicKey:  'iV2ASF8qWV701Y4Sa',
-  toEmail:    localStorage.getItem('em_to') || ''
+  toEmail:    ''  // loaded safely at runtime
 };
+// Load saved email safely (localStorage may be blocked in some iframe contexts)
+try { EMAILJS_CONFIG.toEmail = localStorage.getItem('em_to') || ''; } catch(e) {}
 
 function saveEmailConfig() {
   const s = document.getElementById('em-service').value.trim();
   const t = document.getElementById('em-template').value.trim();
   const k = document.getElementById('em-pubkey').value.trim();
   const e = document.getElementById('em-to').value.trim();
-  localStorage.setItem('em_service', s);
-  localStorage.setItem('em_to', e);
-  localStorage.setItem('em_template', t);
-  localStorage.setItem('em_pubkey', k);
+  try {
+    localStorage.setItem('em_service', s);
+    localStorage.setItem('em_to', e);
+    localStorage.setItem('em_template', t);
+    localStorage.setItem('em_pubkey', k);
+  } catch(e) {}
   EMAILJS_CONFIG.serviceId  = s;
   EMAILJS_CONFIG.templateId = t;
   EMAILJS_CONFIG.publicKey  = k;
