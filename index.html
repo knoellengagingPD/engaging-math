@@ -2029,10 +2029,10 @@ function goNextModule() {
 
 // EmailJS config — filled in by teacher once
 const EMAILJS_CONFIG = {
-  serviceId:  localStorage.getItem('em_service')  || '',
-  templateId: localStorage.getItem('em_template') || '',
-  publicKey:  localStorage.getItem('em_pubkey')   || '',
-  toEmail:    localStorage.getItem('em_to')       || ''
+  serviceId:  'service_dxzt0ar',
+  templateId: 'template_xn2bhe7',
+  publicKey:  'iV2ASF8qWV701Y4Sa',
+  toEmail:    localStorage.getItem('em_to') || ''
 };
 
 function saveEmailConfig() {
@@ -2330,30 +2330,9 @@ function showDailyReport() {
         </div>
         <div id="email-status" style="display:none;font-size:0.78rem;margin-bottom:10px;"></div>
 
-        ${!hasConfig ? `
-          <details style="margin-top:8px;">
-            <summary style="font-size:0.72rem;color:rgba(255,255,255,0.4);cursor:pointer;font-family:'JetBrains Mono',monospace;letter-spacing:0.06em;">⚙ First-time setup: EmailJS credentials</summary>
-            <div style="margin-top:10px;padding:14px;background:rgba(255,255,255,0.03);border-radius:8px;font-size:0.75rem;color:rgba(255,255,255,0.6);line-height:1.7;">
-              <strong style="color:#ffffff;">One-time setup (free):</strong><br>
-              1. Go to <a href="https://www.emailjs.com" target="_blank" style="color:#7c6bff;">emailjs.com</a> → create a free account<br>
-              2. Add an Email Service (Gmail works great)<br>
-              3. Create a Template — use variables: <code style="background:rgba(255,255,255,0.1);padding:1px 4px;border-radius:3px;">{{report_html}}</code> and <code style="background:rgba(255,255,255,0.1);padding:1px 4px;border-radius:3px;">{{to_email}}</code><br>
-              4. Paste your IDs below and click Save<br>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;">
-              <input id="em-service" placeholder="Service ID" value="${EMAILJS_CONFIG.serviceId}"
-                style="padding:8px 10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#fff;font-family:monospace;font-size:0.72rem;outline:none;" />
-              <input id="em-template" placeholder="Template ID" value="${EMAILJS_CONFIG.templateId}"
-                style="padding:8px 10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#fff;font-family:monospace;font-size:0.72rem;outline:none;" />
-              <input id="em-pubkey" placeholder="Public Key" value="${EMAILJS_CONFIG.publicKey}"
-                style="padding:8px 10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#fff;font-family:monospace;font-size:0.72rem;outline:none;" />
-              <input id="em-to" placeholder="Default recipient email" value="${EMAILJS_CONFIG.toEmail}"
-                style="padding:8px 10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#fff;font-family:monospace;font-size:0.72rem;outline:none;" />
-            </div>
-            <button onclick="saveEmailConfig()" style="margin-top:8px;padding:8px 16px;background:rgba(124,107,255,0.2);border:1px solid rgba(124,107,255,0.4);border-radius:6px;color:#a5b4fc;font-family:'Syne',sans-serif;font-weight:700;font-size:0.75rem;cursor:pointer;">Save Credentials</button>
-            <span id="config-saved" style="display:none;margin-left:10px;font-size:0.72rem;color:#3ecf8e;">✓ Saved!</span>
-          </details>
-        ` : ''}
+        <div style="font-size:0.68rem;color:rgba(255,255,255,0.3);margin-top:6px;font-family:'JetBrains Mono',monospace;">
+          Powered by EmailJS · knoell@engagingpd.com
+        </div>
       </div>
     </div>
   `;
